@@ -121,6 +121,9 @@ namespace PowerPlanManager
 			}
 		}
 
+		public Action EnteredIdleEvent;
+		public Action ExitedIdleEvent;
+
 
 		BackgroundWorker bw;
 
@@ -247,6 +250,7 @@ namespace PowerPlanManager
 				currentStatus = TargetStatus.idle;
 				Debug.Log("entering idle");
 				ppm.ApplyIdlePowerPlan();
+				EnteredIdleEvent?.Invoke();
 				return true;
 			}
 			return false;
@@ -259,6 +263,7 @@ namespace PowerPlanManager
 				currentStatus = TargetStatus.use;
 				Debug.Log("exiting idle");
 				ppm.ApplyDefaultPowerPlan();
+				ExitedIdleEvent?.Invoke();
 				return true;
 			}
 			return false;

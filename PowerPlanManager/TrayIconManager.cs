@@ -61,17 +61,36 @@ namespace PowerPlanManager
 			trayIcon.ContextMenuStrip = contextMenuStrip;
 			trayIcon.MouseDoubleClick += OnDoubleClick;
 
+			// register with idle manager events
+			im.EnteredIdleEvent += OnEnteredIdle;
+			im.ExitedIdleEvent += OnExitedIdle;
+			OnExitedIdle();
+
+			contextMenuStrip.ResumeLayout(false);
+		}
+
+		private void OnExitedIdle()
+		{
 			try
 			{
-				//trayIcon.Icon = System.Drawing.Icon.ExtractAssociatedIcon("penguin.ico");
-				trayIcon.Icon = Resources.penguin;
+				trayIcon.Icon = Resources.use;
 			}
 			catch (System.Exception ex)
 			{
-				Debug.LogError("failed to get icon");
+				Debug.LogError("failed to set icon");
 			}
+		}
 
-			contextMenuStrip.ResumeLayout(false);
+		private void OnEnteredIdle()
+		{
+			try
+			{
+				trayIcon.Icon = Resources.idle;
+			}
+			catch (System.Exception ex)
+			{
+				Debug.LogError("failed to set icon");
+			}
 		}
 
 		void OnDoubleClick(object sender, MouseEventArgs e)
