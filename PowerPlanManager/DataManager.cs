@@ -46,16 +46,24 @@ namespace PowerPlanManager
 		void LoadPrefs()
 		{
 			prefs.Clear();
-			if (File.Exists(dataFilePath))
+			try
 			{
-				var lines = File.ReadAllLines(dataFilePath);
-				foreach (var line in lines)
+				if (File.Exists(dataFilePath))
 				{
-					string[] split = line.Split('=');
-					prefs.Add(split[0], split[1]);
+					var lines = File.ReadAllLines(dataFilePath);
+					foreach (var line in lines)
+					{
+						string[] split = line.Split('=');
+						prefs.Add(split[0], split[1]);
+					}
 				}
+				else Debug.LogWarning("pref file not found: " + dataFilePath);
 			}
-			else Debug.LogWarning("pref file not found: " + dataFilePath);
+			catch(Exception ex)
+			{
+				Debug.LogError("failed to read prefs: " + ex.ToString());
+				prefs.Clear();
+			}
 		}
 
 		public void SetPref(string key, string value)
@@ -69,6 +77,11 @@ namespace PowerPlanManager
 		public string GetPref(string key)
 		{
 			return prefs.ContainsKey(key) ? prefs[key] : "";
+		}
+
+		public T GetPref<T>(string key, T def)
+		{
+			return prefs.ContainsKey(key) ? (T)Convert.ChangeType(prefs[key], typeof(T)) : def;
 		}
 
 		void SavePrefs()

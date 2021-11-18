@@ -13,7 +13,6 @@ namespace PowerPlanManager
 	internal partial class FormPowerPlanManager : Form
 	{
 
-
 		SelfInstaller si;
 		PowerPlanManager ppm;
 		IdleManager im;
@@ -40,7 +39,6 @@ namespace PowerPlanManager
 			base.OnClosing(e);
 		}
 
-
 		void DrawInvoke()
 		{
 			this.Invoke((MethodInvoker)delegate { Draw(); });
@@ -50,52 +48,70 @@ namespace PowerPlanManager
 		{
 			Debug.Log("drawing");
 
-			// show power plants in combos
-			comboDefault.Items.Clear();
-			comboIdle.Items.Clear();
-			foreach (var v in ppm.availablePlans)
-			{
-				comboDefault.Items.Add(v.Value.name);
-				comboIdle.Items.Add(v.Value.name);
-			}
-
-			// select current values
-			if (ppm.defaultPlan != null) comboDefault.SelectedItem = ppm.defaultPlan.name;
-			if (ppm.idlePlan != null) comboIdle.SelectedItem = ppm.idlePlan.name;
-
-			// show current label
-			labelCurrentPowerPlan.Text = ppm.currentPlan != null ? ppm.currentPlan.name : "ERROR";
-
-			// show modes
-			comboMode.Items.Clear();
-			foreach(var v in Enum.GetValues(typeof(IdleManager.Modes)))
-			{
-				comboMode.Items.Add(v.ToString());
-			}
-			comboMode.SelectedItem = im.mode.ToString();
-
-			// show timeout
-			numericUpDown.Value = im.timeout;
+			// TODO draw enabled
 
 			// show autostart
-			checkBoxAutoStart.Checked = si.IsAutostarting();
+			toggleAutoStart.Checked = si.IsAutostarting();
+
+			// show current power plan
+			labelCurrentPowerPlan.Text = ppm.currentPlan != null ? ppm.currentPlan.name : "ERROR";
+
+			// show power plants in combos
+			comboInUsePP.Items.Clear();
+			comboIdlePP.Items.Clear();
+			foreach (var v in ppm.availablePlans)
+			{
+				comboInUsePP.Items.Add(v.Value.name);
+				comboIdlePP.Items.Add(v.Value.name);
+			}
+			if (ppm.defaultPlan != null) comboInUsePP.SelectedItem = ppm.defaultPlan.name;
+			if (ppm.idlePlan != null) comboIdlePP.SelectedItem = ppm.idlePlan.name;
+
+			// show screensaver
+			toggleIdleOnScreensaver.Checked = im.IdleOnScreensaver;
+
+			// show timeout
+			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
+			inputTimeout.Value = im.InputTimeout;
+
+			// show processes
+			toggleDisableWithProcesses.Checked = im.DisableWithProcesses;
+			richTextBox1.Text = im.DisableProcesses;
 		}
 
-		private void cbPowerPlan_default_SelectedIndexChanged(object sender, EventArgs e)
+		private void toggleEnabled_CheckedChanged(object sender, EventArgs e)
 		{
-			string selected = (string)comboDefault.SelectedItem;
+			// TODO enable, disable
+			//ppm.
+		}
+
+		
+
+		private void toggleAutoStart_CheckedChanged(object sender, EventArgs e)
+		{
+			si.SetAutoStart(toggleAutoStart.Checked);
+		}
+
+		private void pollingInterval_ValueChanged(object sender, EventArgs e)
+		{
+			im.PollingInterval = (int)pollingInterval.Value;
+		}
+
+		private void comboInUsePP_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			string selected = (string)comboInUsePP.SelectedItem;
 			Debug.Log("default power plan selected: " + selected);
-			
+
 			// set plan
 			ppm.defaultPlan = ppm.GetPowerPlanFromName(selected);
-			
+
 			// save pref
 			dm.SetPref("default", ppm.defaultPlan.name);
 		}
 
-		private void cbPowerPlan_idle_SelectedIndexChanged(object sender, EventArgs e)
+		private void comboIdlePP_SelectedIndexChanged(object sender, EventArgs e)
 		{
-			string selected = (string)comboIdle.SelectedItem;
+			string selected = (string)comboIdlePP.SelectedItem;
 			Debug.Log("idle power plan selected: " + selected);
 
 			// set plan
@@ -105,41 +121,53 @@ namespace PowerPlanManager
 			dm.SetPref("idle", ppm.idlePlan.name);
 		}
 
-		private void comboMode_SelectedIndexChanged(object sender, EventArgs e)
+		private void toggleIdleOnScreensaver_CheckedChanged(object sender, EventArgs e)
 		{
-			string selected = (string)comboMode.SelectedItem;
-			Debug.Log("idle mode selected: " + selected);
-
-			// set mode
-			im.mode = (IdleManager.Modes)Enum.Parse(typeof(IdleManager.Modes), selected);
-
-			// save pref
-			dm.SetPref("mode", selected);
-
-			// show or hide timeout
-			numericUpDown.Enabled = im.mode == IdleManager.Modes.timeout;
+			im.IdleOnScreensaver = toggleIdleOnScreensaver.Checked;
 		}
 
-		private void numericUpDown_ValueChanged(object sender, EventArgs e)
+		private void toggleIdleOnTimeout_CheckedChanged(object sender, EventArgs e)
 		{
-			int selected = (int)numericUpDown.Value;
-			Debug.Log("timeout selected: " + selected);
-
-			// set mode
-			im.timeout = selected;
-
-			// save pref
-			dm.SetPref("timeout", selected.ToString());
+			im.IdleOnTimeout = toggleIdleOnTimeout.Checked;
 		}
 
-		private void checkBoxAutoStart_CheckedChanged(object sender, EventArgs e)
+		private void inputTimeout_ValueChanged(object sender, EventArgs e)
 		{
-			si.SetAutoStart(checkBoxAutoStart.Checked);
+			im.InputTimeout = (int)inputTimeout.Value;
 		}
 
-		private void buttonShowLog_Click(object sender, EventArgs e)
+		private void toggleDisableWithProcesses_CheckedChanged(object sender, EventArgs e)
 		{
-			Debug.ShowLog();
+			im.DisableWithProcesses = toggleDisableWithProcesses.Checked;
 		}
+
+		private void richTextBox1_TextChanged(object sender, EventArgs e)
+		{
+			im.DisableProcesses = richTextBox1.Text;
+		}
+
+
+
+
+
+
+
+
+		//private void comboMode_SelectedIndexChanged(object sender, EventArgs e)
+		//{
+		//	string selected = (string)comboMode.SelectedItem;
+		//	Debug.Log("idle mode selected: " + selected);
+
+		//	// set mode
+		//	im.mode = (IdleManager.Modes)Enum.Parse(typeof(IdleManager.Modes), selected);
+
+		//	// save pref
+		//	dm.SetPref("mode", selected);
+
+		//	// show or hide timeout
+		//	inputTimeout.Enabled = im.mode == IdleManager.Modes.timeout;
+		//}
+
+
 	}
 }
