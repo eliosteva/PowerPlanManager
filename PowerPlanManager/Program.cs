@@ -28,30 +28,30 @@ namespace PowerPlanManager
 
 			// ask to install if not installed
 			SelfInstaller si = new SelfInstaller();
-			if (!si.IsInstalled() && si.AskToInstall())
-			{
-				Application.Exit();
-				return;
-			}
+			//if (!si.IsInstalled() && si.AskToInstall())
+			//{
+			//	si.Install();
+			//	Application.Exit();
+			//	return;
+			//}
 
 			// init data
 			DataManager dm = new DataManager(si);
 
 			// init power plans
 			PowerPlanManager ppm = new PowerPlanManager(dm);
+			PowerModeManager pmm = new PowerModeManager(dm);
 
 			// init idle
-			IdleManager im = new IdleManager(dm, ppm);
+			IdleManager im = new IdleManager(dm, ppm, pmm);
 
 			// start tray icon
 			ControlContainer container = new ControlContainer();
-			TrayIconManager nm = new TrayIconManager(si, container, ppm, im , dm);
+			TrayIconManager nm = new TrayIconManager(si, container, ppm, pmm, im , dm);
 
 			// run message pump
 			Application.Run();
 		}
 
-
-		
 	}
 }

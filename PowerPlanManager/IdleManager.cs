@@ -13,8 +13,7 @@ namespace PowerPlanManager
 	internal class IdleManager
 	{
 
-		DataManager dm;
-		PowerPlanManager ppm;
+		
 
 
 
@@ -126,11 +125,15 @@ namespace PowerPlanManager
 
 
 		BackgroundWorker bw;
+		DataManager dm;
+		PowerPlanManager ppm;
+		PowerModeManager pmm;
 
-		internal IdleManager(DataManager dm, PowerPlanManager ppm)
+		internal IdleManager(DataManager dm, PowerPlanManager ppm, PowerModeManager pmm)
 		{
 			this.dm = dm;
 			this.ppm = ppm;
+			this.pmm = pmm;
 
 			Debug.Log("initializing idle manager");
 
@@ -160,7 +163,7 @@ namespace PowerPlanManager
 			blockingProcessNames.Clear();
 			if (string.IsNullOrEmpty(DisableProcesses))
 			{
-				string[] ss = disableProcesses.Split("\n");
+				string[] ss = disableProcesses.Split('\n');
 				foreach (var s in ss)
 				{
 					blockingProcessNames.Add(s);
@@ -250,6 +253,7 @@ namespace PowerPlanManager
 				currentStatus = TargetStatus.idle;
 				Debug.Log("entering idle");
 				ppm.ApplyIdlePowerPlan();
+				pmm.ApplyIdlePowerPlan();
 				EnteredIdleEvent?.Invoke();
 				return true;
 			}
@@ -263,6 +267,7 @@ namespace PowerPlanManager
 				currentStatus = TargetStatus.use;
 				Debug.Log("exiting idle");
 				ppm.ApplyDefaultPowerPlan();
+				pmm.ApplyDefaultPowerPlan();
 				ExitedIdleEvent?.Invoke();
 				return true;
 			}
@@ -273,12 +278,13 @@ namespace PowerPlanManager
 
 		static TimeSpan GetInputIdleTime()
 		{
-			var plii = new NativeMethods.LastInputInfo();
+			NativeMethods.LastInputInfo plii = new NativeMethods.LastInputInfo();
 			plii.cbSize = (UInt32)Marshal.SizeOf(plii);
 
 			if (NativeMethods.GetLastInputInfo(ref plii))
 			{
-				return TimeSpan.FromMilliseconds(Environment.TickCount64 - plii.dwTime);
+				//return TimeSpan.FromMilliseconds(Environment.TickCount64 - plii.dwTime);
+				return TimeSpan.FromMilliseconds(Environment.TickCount - plii.dwTime);
 			}
 			else
 			{

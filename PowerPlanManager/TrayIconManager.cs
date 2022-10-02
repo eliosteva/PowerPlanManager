@@ -16,13 +16,15 @@ namespace PowerPlanManager
 		NotifyIcon trayIcon;
 		FormPowerPlanManager form;
 		PowerPlanManager ppm;
+		PowerModeManager pmm;
 		IdleManager im;
 		DataManager dm;
 
-		internal TrayIconManager(SelfInstaller si, ControlContainer container, PowerPlanManager ppm, IdleManager im, DataManager dm)
+		internal TrayIconManager(SelfInstaller si, ControlContainer container, PowerPlanManager ppm, PowerModeManager pmm, IdleManager im, DataManager dm)
 		{
 			this.si = si;
 			this.ppm = ppm;
+			this.pmm = pmm;
 			this.im = im;
 			this.dm = dm;
 
@@ -134,7 +136,7 @@ namespace PowerPlanManager
 		{
 			if (form == null || form.IsDisposed)
 			{
-				form = new FormPowerPlanManager(si, ppm, im, dm);
+				form = new FormPowerPlanManager(si, ppm, pmm, im, dm);
 			}
 
 			Debug.Log("showing form");

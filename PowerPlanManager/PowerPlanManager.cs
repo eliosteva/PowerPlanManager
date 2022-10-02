@@ -17,14 +17,14 @@ namespace PowerPlanManager
 	internal class PowerPlanManager
 	{
 
-
-
-		internal class PowerPlan
+		internal class LegacyPowerPlan
 		{
 			public uint index;
 			public Guid guid;
 			public string name;
 		}
+
+		#region extern
 
 		enum AccessFlags : uint
 		{
@@ -45,15 +45,27 @@ namespace PowerPlanManager
 		[DllImport("PowrProf.dll", CharSet = CharSet.Unicode)]
 		static extern UInt32 PowerSetActiveScheme(IntPtr RootPowerKey, [MarshalAs(UnmanagedType.LPStruct)] Guid SchemeGuid);
 
+		#endregion
 
 		internal Action PowerPlanChangedEvent;
 
 		DataManager dm;
+		bool enabled = false;
 
-		public Dictionary<Guid, PowerPlan> availablePlans = new Dictionary<Guid, PowerPlan>();
-		public PowerPlan currentPlan = null;
-		public PowerPlan defaultPlan = null;
-		public PowerPlan idlePlan = null;
+		public Dictionary<Guid, LegacyPowerPlan> availablePlans = new Dictionary<Guid, LegacyPowerPlan>();
+		public LegacyPowerPlan currentPlan = null;
+		public LegacyPowerPlan defaultPlan = null;
+		public LegacyPowerPlan idlePlan = null;
+
+		internal bool Enabled
+		{
+			get => enabled;
+			set
+			{
+				enabled = value;
+				dm.SetPref("ppm_enabled", enabled.ToString());
+			}
+		}
 
 		internal PowerPlanManager(DataManager dm)
 		{
@@ -66,22 +78,7 @@ namespace PowerPlanManager
 			// load from prefs
 			defaultPlan = GetPowerPlanFromName(dm.GetPref("default"));
 			idlePlan = GetPowerPlanFromName(dm.GetPref("idle"));
-		}
-
-
-		public PowerPlan GetPowerPlanFromName(string s)
-		{
-			foreach (var v in availablePlans)
-			{
-				if (v.Value.name.Equals(s)) return v.Value;
-			}
-
-			return null;
-		}
-
-		public PowerPlan GetPowerPlanFromGuid(Guid guid)
-		{
-			return availablePlans[guid];
+			enabled = dm.GetPref<bool>("ppm_enabled", false);
 		}
 
 		internal void ApplyIdlePowerPlan()
@@ -93,9 +90,31 @@ namespace PowerPlanManager
 		{
 			ApplyPowerPlan(defaultPlan);
 		}
-
-		void ApplyPowerPlan(PowerPlan targetPlan)
+		internal LegacyPowerPlan GetPowerPlanFromName(string s)
 		{
+			foreach (var v in availablePlans)
+			{
+				if (v.Value.name.Equals(s)) return v.Value;
+			}
+
+			return null;
+		}
+
+		internal LegacyPowerPlan GetPowerPlanFromGuid(Guid guid)
+		{
+			return availablePlans[guid];
+		}
+
+
+
+		void ApplyPowerPlan(LegacyPowerPlan targetPlan)
+		{
+			if (!enabled)
+			{
+				Debug.LogWarning("cannot apply power plan: disabled");
+				return;
+			}
+
 			// must have target
 			if (targetPlan == null)
 			{
@@ -123,8 +142,6 @@ namespace PowerPlanManager
 
 
 
-
-
 		static string ReadFriendlyName(Guid schemeGuid)
 		{
 			uint sizeName = 1024;
@@ -145,19 +162,20 @@ namespace PowerPlanManager
 			return friendlyName;
 		}
 
-		static Dictionary<Guid, PowerPlan> GetAvailablePowerPlans()
+		static Dictionary<Guid, LegacyPowerPlan> GetAvailablePowerPlans()
 		{
-			Dictionary<Guid, PowerPlan> dic = new Dictionary<Guid, PowerPlan>();
+			Dictionary<Guid, LegacyPowerPlan> dic = new Dictionary<Guid, LegacyPowerPlan>();
 			{
 				Guid schemeGuid = Guid.Empty;
 				uint sizeSchemeGuid = (uint)Marshal.SizeOf(typeof(Guid));
 				uint schemeIndex = 0;
 				while (PowerEnumerate(IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, (uint)AccessFlags.ACCESS_SCHEME, schemeIndex, ref schemeGuid, ref sizeSchemeGuid) == 0)
 				{
-					PowerPlan pp = new PowerPlan();
+					LegacyPowerPlan pp = new LegacyPowerPlan();
 					pp.index = schemeIndex;
 					pp.guid = schemeGuid;
 					pp.name = ReadFriendlyName(schemeGuid);
+					Debug.Log("power plan found: " + pp.name);
 
 					dic.Add(schemeGuid, pp);
 
@@ -180,5 +198,80 @@ namespace PowerPlanManager
 			PowerSetActiveScheme(IntPtr.Zero, guid);
 		}
 
+
+
+
+
+
+
+
+		/*
+
+		//Balanced: 381b4222-f694-41f0-9685-ff5bb260df2e
+		//High performance: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+		//Power saver: a1841308-3541-4fab-bc81-f71556f20b4a
+
+		internal enum Mode
+		{
+			Battery,
+			Balanced,
+			Performance,
+		}
+
+		
+
+		void SetModeViaCmd(Mode mode)
+		{
+			if (!enabled)
+			{
+				Debug.LogWarning("cannot apply power mode " + mode + ": disabled");
+				return;
+			}
+
+			string modeGUID = "";
+			switch (mode)
+			{
+				case Mode.Battery:
+					modeGUID = "a1841308-3541-4fab-bc81-f71556f20b4a";
+					break;
+
+				default:
+				case Mode.Balanced:
+					modeGUID = "381b4222-f694-41f0-9685-ff5bb260df2e";
+					break;
+				case Mode.Performance:
+					modeGUID = "8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c";
+					break;
+			}
+
+			Debug.Log("applying power mode " + mode);
+			System.Diagnostics.Process process = new System.Diagnostics.Process();
+			System.Diagnostics.ProcessStartInfo startInfo = new System.Diagnostics.ProcessStartInfo();
+			startInfo.WindowStyle = System.Diagnostics.ProcessWindowStyle.Hidden;
+			startInfo.FileName = "cmd.exe";
+			startInfo.Arguments = "/c powercfg /setactive " + modeGUID;
+			//startInfo.RedirectStandardError = true;
+			//startInfo.RedirectStandardOutput = true;
+			//startInfo.UseShellExecute = true;
+			//startInfo.CreateNoWindow = false;
+
+			process.StartInfo = startInfo;
+			process.Start();
+
+			process.WaitForExit();
+
+		}
+
+
+		internal void ApplyIdlePowerPlan()
+		{
+			SetModeViaCmd(Mode.Battery);
+		}
+
+		internal void ApplyDefaultPowerPlan()
+		{
+			SetModeViaCmd(Mode.Balanced);
+		}
+		*/
 	}
 }

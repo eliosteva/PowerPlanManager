@@ -117,7 +117,6 @@ namespace PowerPlanManager
 			DialogResult dr = MessageBox.Show("Application not installed. Would you like to install?\nApp will be copied to AppData\\Local and will restart", "", MessageBoxButtons.YesNo);
 			if (dr == System.Windows.Forms.DialogResult.Yes)
 			{
-				Install();
 				return true;
 			}
 			else
