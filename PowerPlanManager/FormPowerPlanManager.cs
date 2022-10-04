@@ -28,6 +28,7 @@ namespace PowerPlanManager
 			this.dm = dm;
 
 			this.ppm.PowerPlanChangedEvent += DrawInvoke;
+			this.pmm.PowerModeChangedEvent += DrawInvoke;
 
 			InitializeComponent();
 
@@ -38,6 +39,7 @@ namespace PowerPlanManager
 		{
 			Debug.Log("closing form");
 			this.ppm.PowerPlanChangedEvent -= DrawInvoke;
+			this.pmm.PowerModeChangedEvent -= DrawInvoke;
 			base.OnClosing(e);
 		}
 
@@ -55,11 +57,16 @@ namespace PowerPlanManager
 			// show autostart
 			toggleAutoStart.Checked = si.IsAutostarting();
 
-			// show current power plan
+			// show screensaver
+			toggleIdleOnScreensaver.Checked = im.IdleOnScreensaver;
+
+			// show timeout
+			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
+			inputTimeout.Value = im.InputTimeout;
+
+			// show power plans
 			checkBoxUserPowerPlans.Checked = ppm.Enabled;
 			labelCurrentPowerPlan.Text = ppm.currentPlan != null ? ppm.currentPlan.name : "ERROR";
-
-			// show power plants in combos
 			comboInUsePP.Items.Clear();
 			comboIdlePP.Items.Clear();
 			foreach (var v in ppm.availablePlans)
@@ -69,17 +76,17 @@ namespace PowerPlanManager
 			}
 			if (ppm.defaultPlan != null) comboInUsePP.SelectedItem = ppm.defaultPlan.name;
 			if (ppm.idlePlan != null) comboIdlePP.SelectedItem = ppm.idlePlan.name;
+			comboInUsePP.Enabled = checkBoxUserPowerPlans.Checked;
+			comboIdlePP.Enabled = checkBoxUserPowerPlans.Checked;
 
-			// show screensaver
-			toggleIdleOnScreensaver.Checked = im.IdleOnScreensaver;
-
-			// show timeout
-			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
-			inputTimeout.Value = im.InputTimeout;
+			// show power modes
+			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
+			checkBoxUsePowerModes.Checked = pmm.Enabled;
 
 			// show processes
 			toggleDisableWithProcesses.Checked = im.DisableWithProcesses;
 			richTextBox1.Text = im.DisableProcesses;
+
 		}
 
 		#region polling
@@ -169,6 +176,11 @@ namespace PowerPlanManager
 		private void button2_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyDefaultPowerPlan();
+		}
+
+		private void button3_Click(object sender, EventArgs e)
+		{
+			Application.Exit();
 		}
 
 		#endregion

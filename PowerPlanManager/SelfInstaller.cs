@@ -86,30 +86,40 @@ namespace PowerPlanManager
 		{
 			Debug.Log("checking if app is installed");
 
-			// check dir
-			if (currentAppDirPath == targetAppDirPath)
+			// check current dir
+			if (currentExePath != targetExePath)
 			{
-				// check registry
-				using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"))
-				{
-					string value = (string)registryKey.GetValue(programName);
-					if (!string.IsNullOrEmpty(value) && value == targetExePath)
-					{
-						Debug.Log("app is installed (value is: " + value + ")");
-						return true;
-					}
-					else
-					{
-						Debug.Log("app is not installed (value is: " + value + ")");
-						return false;
-					}
-				}
+				return false;
 			}
 			else
 			{
-				Debug.Log("app was not started from install location\ncurrent dir: " + currentAppDirPath + "\ninstall dir: " + targetAppDirPath);
-				return false;
+				return true;
 			}
+
+			// check dir
+			//if (currentAppDirPath == targetAppDirPath)
+			//{
+			//	check registry
+			//	using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"))
+			//	{
+			//		string value = (string)registryKey.GetValue(programName);
+			//		if (!string.IsNullOrEmpty(value) && value == targetExePath)
+			//		{
+			//			Debug.Log("app is installed (value is: " + value + ")");
+			//			return true;
+			//		}
+			//		else
+			//		{
+			//			Debug.Log("app is not installed (value is: " + value + ")");
+			//			return false;
+			//		}
+			//	}
+			//}
+			//else
+			//{
+			//	Debug.Log("app was not started from install location\ncurrent dir: " + currentAppDirPath + "\ninstall dir: " + targetAppDirPath);
+			//	return false;
+			//}
 		}
 
 		internal bool AskToInstall()
@@ -177,12 +187,17 @@ namespace PowerPlanManager
 				// copy executable to localAppData
 				Debug.Log("copying file to: " + targetAppPath);
 				File.Copy(currentExePath, targetExePath, true);
-				File.Copy(currentAppPath + ".dll", targetAppPath + ".dll", true);
-				File.Copy(currentAppPath + ".runtimeconfig.json", targetAppPath + ".runtimeconfig.json", true);
+				//File.Copy(currentAppPath + ".dll", targetAppPath + ".dll", true);
+				//File.Copy(currentAppPath + ".runtimeconfig.json", targetAppPath + ".runtimeconfig.json", true);
 
+				// launch via CMD
+				Process myProcess = Process.Start(new ProcessStartInfo { Arguments = "/C " + targetExePath, FileName = "cmd", WindowStyle = ProcessWindowStyle.Hidden });
+				
+				/*
 				// start other copy with new working dir
 				Debug.Log("starting new copy");
 				ProcessStartInfo psi = new ProcessStartInfo();
+				psi.UseShellExecute = true;
 				psi.WorkingDirectory = targetAppDirPath;
 				psi.FileName = targetExePath;
 				Process myProcess = Process.Start(psi);
@@ -191,6 +206,7 @@ namespace PowerPlanManager
 				//	Debug.Log(myProcess.ExitCode.ToString());
 				//	throw new Exception();
 				//}
+				*/
 			}
 			catch (Exception ex)
 			{

@@ -10,12 +10,12 @@ namespace PowerPlanManager
 	internal class PowerModeManager
 	{
 
-		
 
 
+		internal Action PowerModeChangedEvent;
 
 		DataManager dm;
-		bool enabled = false;
+		bool enabled = true;
 
 		internal bool Enabled
 		{
@@ -31,10 +31,19 @@ namespace PowerPlanManager
 		{
 			this.dm = dm;
 
-			enabled = dm.GetPref<bool>("pmm_enabled", true);
+			enabled = dm.GetPref<bool>("pmm_enabled", enabled);
 		}
 
 
+		internal string GetCurrentPowerModeName()
+		{
+			PowerGetEffectiveOverlayScheme(out Guid guid);
+			if (guid == PowerMode.BetterBattery) return "Best power efficiency";
+			else if (guid == PowerMode.BetterPerformance) return "Balanced";
+			else if (guid.ToString() == "3af9B8d9-7c97-431d-ad78-34a8bfea439f") return "Balanced";
+			else if (guid == PowerMode.BestPerformance) return "Best performance";
+			else return "unknown";
+		}
 
 		internal void ApplyIdlePowerPlan()
 		{
@@ -48,6 +57,8 @@ namespace PowerPlanManager
 
 		void ApplyPowerMode(Guid powerMode)
 		{
+			if (!enabled) return;
+
 			uint result = PowerSetActiveOverlayScheme(powerMode);
 
 			if (result == 0)
@@ -58,8 +69,9 @@ namespace PowerPlanManager
 			{
 				Debug.LogError("failed to set power mode to: " + powerMode);
 			}
-		}
 
+			PowerModeChangedEvent?.Invoke();
+		}
 
 
 

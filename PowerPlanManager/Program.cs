@@ -20,20 +20,21 @@ namespace PowerPlanManager
 		static void Main()
 		{
 			//Application.SetHighDpiMode(HighDpiMode.SystemAware);
-			//Application.EnableVisualStyles();
-			//Application.SetCompatibleTextRenderingDefault(false);
-			//Application.Run(new FormPowerPlanManager());
-
+			Application.EnableVisualStyles();
+			Application.SetCompatibleTextRenderingDefault(true);
+			
 			Debug.Log(" ====================== started");
 
 			// ask to install if not installed
 			SelfInstaller si = new SelfInstaller();
-			//if (!si.IsInstalled() && si.AskToInstall())
-			//{
-			//	si.Install();
-			//	Application.Exit();
-			//	return;
-			//}
+//#if !DEBUG
+			if (!si.IsInstalled() && si.AskToInstall())
+			{
+				si.Install();
+				Application.Exit();
+				return;
+			}
+//#endif
 
 			// init data
 			DataManager dm = new DataManager(si);

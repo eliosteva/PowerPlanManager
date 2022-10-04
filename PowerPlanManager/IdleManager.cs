@@ -102,7 +102,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		string disableProcesses = "Netflix|devenv|WWAHost";
+		string disableProcesses = ""; // "Netflix\ndevenv\nUnity"; //WWAHost?
 		public string DisableProcesses
 		{
 			get
@@ -111,10 +111,12 @@ namespace PowerPlanManager
 			}
 			set
 			{
+				value = value.Replace('|', '\n');
+				value = value.Replace(',', '\n');
 				if (value != disableProcesses)
 				{
 					disableProcesses = value;
-					dm.SetPref("disableProcesses", value.ToString().Replace('\n', '|'));
+					dm.SetPref("disableProcesses", value.ToString());
 					RebuildProcessList();
 				}
 			}
@@ -144,6 +146,7 @@ namespace PowerPlanManager
 			PollingInterval = dm.GetPref("pollingInterval", pollingInterval);
 			DisableWithProcesses = dm.GetPref("disableWithProcesses", disableWithProcesses);
 			DisableProcesses = dm.GetPref("disableProcesses", disableProcesses);
+			RebuildProcessList();
 
 			// init background worker and start
 			bw = new BackgroundWorker();
@@ -161,9 +164,9 @@ namespace PowerPlanManager
 		void RebuildProcessList()
 		{
 			blockingProcessNames.Clear();
-			if (string.IsNullOrEmpty(DisableProcesses))
+			if (!string.IsNullOrEmpty(DisableProcesses))
 			{
-				string[] ss = disableProcesses.Split('\n');
+				string[] ss = disableProcesses.Split('\n', '|', ',');
 				foreach (var s in ss)
 				{
 					blockingProcessNames.Add(s);
@@ -187,6 +190,7 @@ namespace PowerPlanManager
 		}
 
 		List<string> blockingProcessNames = new List<string>();
+		
 		enum TargetStatus
 		{
 			use,
@@ -202,14 +206,18 @@ namespace PowerPlanManager
 				// check processes
 				if (blockingProcessNames != null && blockingProcessNames.Count > 0)
 				{
-					foreach (var p in blockingProcessNames)
+					foreach (string name in blockingProcessNames)
 					{
 						// if process is running
-						Process[] pname = Process.GetProcessesByName(p);
+						Process[] pname = Process.GetProcessesByName(name);
 						if (pname.Length != 0)
 						{
 							// exit idle
-							ExitIdle();
+							if (currentStatus == TargetStatus.idle)
+							{
+								Debug.Log("exiting due to process running: " + name);
+								ExitIdle();
+							}
 							return;
 						}
 					}
@@ -222,23 +230,35 @@ namespace PowerPlanManager
 					if (idleTime.TotalSeconds >= inputTimeout)
 					{
 						// enter idle
-						EnterIdle();
+						if (currentStatus == TargetStatus.use)
+						{
+							Debug.Log("entering idle due to user input timeout");
+							EnterIdle();
+						}
 						return;
 					}
 				}
 
-				// check screenshot
+				// check screensaver
 				if (idleOnScreensaver)
 				{
 					if (GetScreenSaverRunning())
 					{
 						// enter idle
-						EnterIdle();
+						if (currentStatus == TargetStatus.use)
+						{
+							Debug.Log("entering idle due to screen saver running");
+							EnterIdle();
+						}
 						return;
 					}
 				}
 
-				ExitIdle();
+				if (currentStatus == TargetStatus.idle)
+				{
+					Debug.Log("exiting idle due to user input");
+					ExitIdle();
+				}
 			}
 			catch (Exception ex)
 			{
@@ -248,30 +268,33 @@ namespace PowerPlanManager
 
 		bool EnterIdle()
 		{
-			if (currentStatus == TargetStatus.use)
+			if (currentStatus != TargetStatus.use)
 			{
-				currentStatus = TargetStatus.idle;
-				Debug.Log("entering idle");
-				ppm.ApplyIdlePowerPlan();
-				pmm.ApplyIdlePowerPlan();
-				EnteredIdleEvent?.Invoke();
-				return true;
+				Debug.LogError("cannot enter idle: already in idle");
+				return false;
 			}
-			return false;
+
+			currentStatus = TargetStatus.idle;
+			Debug.Log("entering idle");
+			ppm.ApplyIdlePowerPlan();
+			pmm.ApplyIdlePowerPlan();
+			EnteredIdleEvent?.Invoke();
+			return true;
 		}
 
 		bool ExitIdle()
 		{
-			if (currentStatus == TargetStatus.idle)
+			if (currentStatus != TargetStatus.idle)
 			{
-				currentStatus = TargetStatus.use;
-				Debug.Log("exiting idle");
-				ppm.ApplyDefaultPowerPlan();
-				pmm.ApplyDefaultPowerPlan();
-				ExitedIdleEvent?.Invoke();
-				return true;
+				Debug.LogError("cannot exit idle: already exited");
+				return false;
 			}
-			return false;
+			
+			currentStatus = TargetStatus.use;
+			ppm.ApplyDefaultPowerPlan();
+			pmm.ApplyDefaultPowerPlan();
+			ExitedIdleEvent?.Invoke();
+			return true;
 		}
 		
 		#region idle timer

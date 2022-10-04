@@ -78,7 +78,7 @@ namespace PowerPlanManager
 			// load from prefs
 			defaultPlan = GetPowerPlanFromName(dm.GetPref("default"));
 			idlePlan = GetPowerPlanFromName(dm.GetPref("idle"));
-			enabled = dm.GetPref<bool>("ppm_enabled", false);
+			enabled = dm.GetPref<bool>("ppm_enabled", enabled);
 		}
 
 		internal void ApplyIdlePowerPlan()
@@ -109,11 +109,7 @@ namespace PowerPlanManager
 
 		void ApplyPowerPlan(LegacyPowerPlan targetPlan)
 		{
-			if (!enabled)
-			{
-				Debug.LogWarning("cannot apply power plan: disabled");
-				return;
-			}
+			if (!enabled) return;
 
 			// must have target
 			if (targetPlan == null)
