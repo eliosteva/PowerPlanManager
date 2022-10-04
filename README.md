@@ -17,7 +17,7 @@ Upon starting, PPM asks if it can copy itself to its folder in %appdata%, where 
 A registry key is added for autostart.
 No installer is provided or necessary, to uninstall just exit the program and delete the folder.
 
-##FAQs
+## FAQs:
 1) Why did you make it?
 I happen to leave my PC running all the time, and found out changing the Power Mode to Battery Saver prevents the CPU from spiking for random background tasks and the fans from spinning up during the night. This also helps conserve energy.
 
@@ -26,3 +26,7 @@ I'm using WinForms as i'm most familiar with it. You're welcome to contribute :)
 
 3) Why is the code so ugly?
 I made this software for my personal use and was done in a rush. You're welcome to contribute :)
+
+## NOTICE:
+This software works on my PC, running Windows 11. It might work on other versions of Windows, but i haven't tested it. It probably won't work for versions older than Windows 10. 
+It also probably requires some form of .Net redistributable installed.
