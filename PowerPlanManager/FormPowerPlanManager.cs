@@ -104,11 +104,13 @@ namespace PowerPlanManager
 		private void toggleIdleOnScreensaver_CheckedChanged(object sender, EventArgs e)
 		{
 			im.IdleOnScreensaver = toggleIdleOnScreensaver.Checked;
+			Draw();
 		}
 
 		private void toggleIdleOnTimeout_CheckedChanged(object sender, EventArgs e)
 		{
 			im.IdleOnTimeout = toggleIdleOnTimeout.Checked;
+			Draw();
 		}
 
 		private void inputTimeout_ValueChanged(object sender, EventArgs e)
@@ -133,6 +135,7 @@ namespace PowerPlanManager
 		private void checkBoxUserPowerPlans_CheckedChanged(object sender, EventArgs e)
 		{
 			ppm.Enabled = checkBoxUserPowerPlans.Checked;
+			Draw();
 		}
 
 		private void comboInUsePP_SelectedIndexChanged(object sender, EventArgs e)

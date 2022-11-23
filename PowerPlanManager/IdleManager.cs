@@ -13,7 +13,7 @@ namespace PowerPlanManager
 	internal class IdleManager
 	{
 
-		
+
 
 
 
@@ -111,8 +111,8 @@ namespace PowerPlanManager
 			}
 			set
 			{
-				value = value.Replace('|', '\n');
-				value = value.Replace(',', '\n');
+				value = value.Replace('\n', '|');
+				value = value.Replace(',', '|');
 				if (value != disableProcesses)
 				{
 					disableProcesses = value;
@@ -190,7 +190,7 @@ namespace PowerPlanManager
 		}
 
 		List<string> blockingProcessNames = new List<string>();
-		
+
 		enum TargetStatus
 		{
 			use,
@@ -198,7 +198,7 @@ namespace PowerPlanManager
 		}
 
 		TargetStatus currentStatus = TargetStatus.use;
-		
+
 		void Poll()
 		{
 			try
@@ -206,21 +206,35 @@ namespace PowerPlanManager
 				// check processes
 				if (blockingProcessNames != null && blockingProcessNames.Count > 0)
 				{
-					foreach (string name in blockingProcessNames)
+					System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
+					foreach (System.Diagnostics.Process process in allProcesses)
 					{
-						// if process is running
-						Process[] pname = Process.GetProcessesByName(name);
-						if (pname.Length != 0)
+						foreach (string blockingName in blockingProcessNames)
 						{
-							// exit idle
-							if (currentStatus == TargetStatus.idle)
+							if ((process.ProcessName.ToLowerInvariant().Contains(blockingName.ToLowerInvariant())))
 							{
-								Debug.Log("exiting due to process running: " + name);
+								Debug.Log("exiting due to process running: " + blockingName);
 								ExitIdle();
+								return;
 							}
-							return;
 						}
 					}
+
+					//foreach (string name in blockingProcessNames)
+					//{
+					//	// if process is running
+					//	Process[] pname = Process.GetProcessesByName(name);
+					//	if (pname.Length != 0)
+					//	{
+					//		// exit idle
+					//		if (currentStatus == TargetStatus.idle)
+					//		{
+					//			Debug.Log("exiting due to process running: " + name);
+					//			ExitIdle();
+					//		}
+					//		return;
+					//	}
+					//}
 				}
 
 				// check timeout
@@ -289,14 +303,14 @@ namespace PowerPlanManager
 				Debug.LogError("cannot exit idle: already exited");
 				return false;
 			}
-			
+
 			currentStatus = TargetStatus.use;
 			ppm.ApplyDefaultPowerPlan();
 			pmm.ApplyDefaultPowerPlan();
 			ExitedIdleEvent?.Invoke();
 			return true;
 		}
-		
+
 		#region idle timer
 
 		static TimeSpan GetInputIdleTime()
@@ -354,4 +368,4 @@ namespace PowerPlanManager
 
 		#endregion
 	}
-	}
+}
