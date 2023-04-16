@@ -52,7 +52,12 @@ namespace PowerPlanManager
 		{
 			Debug.Log("drawing");
 
-			// TODO draw enabled
+			// show current status
+			labelStatus.Text = im.CurrentStatus == IdleManager.TargetStatus.use ? "IN USE" : "IDLE";
+			pictureBoxStatus.Image = im.CurrentStatus == IdleManager.TargetStatus.use ? Resources.use.ToBitmap() : Resources.idle.ToBitmap();
+
+			// show polling interval
+			pollingInterval.Value = im.PollingInterval;
 
 			// show autostart
 			toggleAutoStart.Checked = si.IsAutostarting();
@@ -85,8 +90,62 @@ namespace PowerPlanManager
 
 			// show processes
 			toggleDisableWithProcesses.Checked = im.DisableWithProcesses;
-			richTextBox1.Text = im.DisableProcesses;
+			DrawProcesses();
+		}
 
+		void DrawProcesses()
+		{
+			listBoxRunningProcesses.Items.Clear();
+			listBoxRunningProcesses.Sorted = true;
+
+			// get running processes
+			System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
+			foreach (System.Diagnostics.Process process in allProcesses)
+			{
+				// filter
+				if (!string.IsNullOrEmpty(textBoxSearchRunningProcesses.Text) && !process.ProcessName.Contains(textBoxSearchRunningProcesses.Text)) continue;
+
+				// add to list
+				listBoxRunningProcesses.Items.Add(process.ProcessName);
+			}
+
+			// draw disable processes
+			listBoxDisableProcesses.Items.Clear();
+			foreach(var v in im.BlockingProcessNames)
+			{
+				listBoxDisableProcesses.Items.Add(v);
+			}
+		}
+
+		private void textBoxSearchRunningProcesses_TextChanged(object sender, EventArgs e)
+		{
+			DrawProcesses();
+		}
+
+		private void listBoxRunningProcesses_DoubleClick(object sender, EventArgs e)
+		{
+			// add selected to disable with running
+			if (listBoxRunningProcesses.SelectedItem != null)
+			{
+				if (!im.BlockingProcessNames.Contains(listBoxRunningProcesses.SelectedItem.ToString()))
+				{
+					im.AddBlockingProcess(listBoxRunningProcesses.SelectedItem.ToString());
+				}
+			}
+			DrawProcesses();
+		}
+
+		private void listBoxDisableProcesses_DoubleClick(object sender, EventArgs e)
+		{
+			// remove disable process
+			if (listBoxDisableProcesses.SelectedItem != null)
+			{
+				if (im.BlockingProcessNames.Contains(listBoxDisableProcesses.SelectedItem.ToString()))
+				{
+					im.RemoveBlockingProcess(listBoxDisableProcesses.SelectedItem.ToString());
+				}
+			}
+			DrawProcesses();
 		}
 
 		#region polling
@@ -123,14 +182,17 @@ namespace PowerPlanManager
 			im.DisableWithProcesses = toggleDisableWithProcesses.Checked;
 		}
 
-		private void richTextBox1_TextChanged(object sender, EventArgs e)
-		{
-			im.DisableProcesses = richTextBox1.Text;
-		}
+
 
 		#endregion
 
 		#region power plans
+
+		private void buttonRefreshPowerPlans_Click(object sender, EventArgs e)
+		{
+			ppm.Refresh();
+			Draw();
+		}
 
 		private void checkBoxUserPowerPlans_CheckedChanged(object sender, EventArgs e)
 		{
@@ -166,6 +228,11 @@ namespace PowerPlanManager
 
 		#region power modes
 
+		private void buttonRefreshPowerModes_Click(object sender, EventArgs e)
+		{
+			Draw();
+		}
+
 		private void checkBoxUsePowerModes_CheckedChanged(object sender, EventArgs e)
 		{
 			pmm.Enabled = checkBoxUsePowerModes.Checked;
@@ -173,12 +240,20 @@ namespace PowerPlanManager
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			pmm.ApplyIdlePowerPlan();
+			pmm.ApplyBatterySaverPowerPlan();
+			Draw();
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			pmm.ApplyDefaultPowerPlan();
+			pmm.ApplyBalancedPowerPlan();
+			Draw();
+		}
+
+		private void buttonApplyPerformanceMode_Click(object sender, EventArgs e)
+		{
+			pmm.ApplyPerformancePowerPlan();
+			Draw();
 		}
 
 		private void button3_Click(object sender, EventArgs e)
@@ -186,27 +261,14 @@ namespace PowerPlanManager
 			Application.Exit();
 		}
 
+
+
+
+
+
+
 		#endregion
 
-
-
-
-
-		//private void comboMode_SelectedIndexChanged(object sender, EventArgs e)
-		//{
-		//	string selected = (string)comboMode.SelectedItem;
-		//	Debug.Log("idle mode selected: " + selected);
-
-		//	// set mode
-		//	im.mode = (IdleManager.Modes)Enum.Parse(typeof(IdleManager.Modes), selected);
-
-		//	// save pref
-		//	dm.SetPref("mode", selected);
-
-		//	// show or hide timeout
-		//	inputTimeout.Enabled = im.mode == IdleManager.Modes.timeout;
-		//}
-
-
+		
 	}
 }

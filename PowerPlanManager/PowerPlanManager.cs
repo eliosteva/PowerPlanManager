@@ -71,7 +71,11 @@ namespace PowerPlanManager
 		{
 			this.dm = dm;
 			Debug.Log("initializing power plan manager");
+			Refresh();
+		}
 
+		internal void Refresh()
+		{
 			availablePlans = GetAvailablePowerPlans();
 			currentPlan = GetPowerPlanFromGuid(GetCurrentPowerPlan());
 
@@ -90,6 +94,7 @@ namespace PowerPlanManager
 		{
 			ApplyPowerPlan(defaultPlan);
 		}
+
 		internal LegacyPowerPlan GetPowerPlanFromName(string s)
 		{
 			foreach (var v in availablePlans)

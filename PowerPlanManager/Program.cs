@@ -49,6 +49,9 @@ namespace PowerPlanManager
 			// start tray icon
 			ControlContainer container = new ControlContainer();
 			TrayIconManager nm = new TrayIconManager(si, container, ppm, pmm, im , dm);
+//#if DEBUG
+//			nm.ShowForm();
+//#endif
 
 			// run message pump
 			Application.Run();

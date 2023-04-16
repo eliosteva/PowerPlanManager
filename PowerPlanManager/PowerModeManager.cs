@@ -37,22 +37,30 @@ namespace PowerPlanManager
 
 		internal string GetCurrentPowerModeName()
 		{
+			string s = "";
 			PowerGetEffectiveOverlayScheme(out Guid guid);
-			if (guid == PowerMode.BetterBattery) return "Best power efficiency";
-			else if (guid == PowerMode.BetterPerformance) return "Balanced";
-			else if (guid.ToString() == "3af9B8d9-7c97-431d-ad78-34a8bfea439f") return "Balanced";
-			else if (guid == PowerMode.BestPerformance) return "Best performance";
-			else return "unknown";
+			if (guid == PowerMode.BetterBattery) s = "Best power efficiency";
+			else if (guid == PowerMode.BetterPerformance) s = "Balanced";
+			else if (guid.ToString() == "3af9B8d9-7c97-431d-ad78-34a8bfea439f") s = "Balanced";
+			else if (guid == PowerMode.BestPerformance) s = "Best performance";
+			else s = "unknown";
+			s += " (" + guid.ToString() + ")";
+			return s;
 		}
 
-		internal void ApplyIdlePowerPlan()
+		internal void ApplyBatterySaverPowerPlan()
 		{
 			ApplyPowerMode(PowerMode.BetterBattery);
 		}
 
-		internal void ApplyDefaultPowerPlan()
+		internal void ApplyBalancedPowerPlan()
 		{
 			ApplyPowerMode(PowerMode.BetterPerformance);
+		}
+		
+		internal void ApplyPerformancePowerPlan()
+		{
+			ApplyPowerMode(PowerMode.BestPerformance);
 		}
 
 		void ApplyPowerMode(Guid powerMode)

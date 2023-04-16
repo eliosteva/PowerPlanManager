@@ -102,25 +102,83 @@ namespace PowerPlanManager
 			}
 		}
 
-		string disableProcesses = ""; // "Netflix\ndevenv\nUnity"; //WWAHost?
-		public string DisableProcesses
+		//string disableProcesses = ""; // "Netflix\ndevenv\nUnity"; //WWAHost?
+		//public string DisableProcesses
+		//{
+		//	get
+		//	{
+		//		return disableProcesses;
+		//	}
+		//	set
+		//	{
+		//		value = value.Replace('\n', '|');
+		//		value = value.Replace(',', '|');
+		//		if (value != disableProcesses)
+		//		{
+		//			disableProcesses = value;
+		//			dm.SetPref("disableProcesses", value.ToString());
+		//			RebuildProcessList();
+		//		}
+		//	}
+		//}
+
+		List<string> blockingProcessNames = new List<string>();
+		public IReadOnlyList<string> BlockingProcessNames => blockingProcessNames;
+
+		public void AddBlockingProcess(string name)
 		{
-			get
+			if (!string.IsNullOrEmpty(name))
 			{
-				return disableProcesses;
-			}
-			set
-			{
-				value = value.Replace('\n', '|');
-				value = value.Replace(',', '|');
-				if (value != disableProcesses)
+				if (!blockingProcessNames.Contains(name))
 				{
-					disableProcesses = value;
-					dm.SetPref("disableProcesses", value.ToString());
-					RebuildProcessList();
+					blockingProcessNames.Add(name);
+					SaveBlockingProcessList();
 				}
 			}
 		}
+
+		public void RemoveBlockingProcess(string name)
+		{
+			if (blockingProcessNames.Contains(name))
+			{
+				blockingProcessNames.Remove(name);
+				SaveBlockingProcessList();
+			}
+		}
+
+		void SaveBlockingProcessList()
+		{
+			string s = "";
+			foreach (var v in blockingProcessNames)
+			{
+				if (!string.IsNullOrEmpty(v))
+				{
+					s += v + "|";
+				}
+			}
+			dm.SetPref("disableProcesses", s);
+		}
+
+		//public List<string> BlockingProcessNames
+		//{
+		//	get
+		//	{
+		//		return blockingProcessNames;
+		//	}
+		//	set
+		//	{
+		//		if (value != blockingProcessNames)
+		//		{
+		//			string s = "";
+		//			foreach(var v in value)
+		//			{
+		//				s += v + "|";
+		//			}
+		//			dm.SetPref("disableProcesses", s);
+		//			blockingProcessNames = value;
+		//		}
+		//	}
+		//}
 
 		public Action EnteredIdleEvent;
 		public Action ExitedIdleEvent;
@@ -145,9 +203,8 @@ namespace PowerPlanManager
 			InputTimeout = dm.GetPref("inputTimeout", inputTimeout);
 			PollingInterval = dm.GetPref("pollingInterval", pollingInterval);
 			DisableWithProcesses = dm.GetPref("disableWithProcesses", disableWithProcesses);
-			DisableProcesses = dm.GetPref("disableProcesses", disableProcesses);
-			RebuildProcessList();
-
+			RebuildProcessList(dm.GetPref("disableProcesses", ""));
+			
 			// init background worker and start
 			bw = new BackgroundWorker();
 			bw.WorkerReportsProgress = false;
@@ -161,15 +218,15 @@ namespace PowerPlanManager
 
 		bool close = false;
 
-		void RebuildProcessList()
+		void RebuildProcessList(string text)
 		{
 			blockingProcessNames.Clear();
-			if (!string.IsNullOrEmpty(DisableProcesses))
+			if (!string.IsNullOrEmpty(text))
 			{
-				string[] ss = disableProcesses.Split('\n', '|', ',');
+				string[] ss = text.Split('\n', '|', ',');
 				foreach (var s in ss)
 				{
-					blockingProcessNames.Add(s);
+					if (!string.IsNullOrEmpty(s)) blockingProcessNames.Add(s);
 				}
 			}
 		}
@@ -189,15 +246,16 @@ namespace PowerPlanManager
 			close = true;
 		}
 
-		List<string> blockingProcessNames = new List<string>();
+		
 
-		enum TargetStatus
+		internal enum TargetStatus
 		{
 			use,
 			idle,
 		}
 
 		TargetStatus currentStatus = TargetStatus.use;
+		internal TargetStatus CurrentStatus => currentStatus;
 
 		void Poll()
 		{
@@ -206,35 +264,35 @@ namespace PowerPlanManager
 				// check processes
 				if (blockingProcessNames != null && blockingProcessNames.Count > 0)
 				{
-					System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
-					foreach (System.Diagnostics.Process process in allProcesses)
-					{
-						foreach (string blockingName in blockingProcessNames)
-						{
-							if ((process.ProcessName.ToLowerInvariant().Contains(blockingName.ToLowerInvariant())))
-							{
-								Debug.Log("exiting due to process running: " + blockingName);
-								ExitIdle();
-								return;
-							}
-						}
-					}
-
-					//foreach (string name in blockingProcessNames)
+					//System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
+					//foreach (System.Diagnostics.Process process in allProcesses)
 					//{
-					//	// if process is running
-					//	Process[] pname = Process.GetProcessesByName(name);
-					//	if (pname.Length != 0)
+					//	foreach (string blockingName in blockingProcessNames)
 					//	{
-					//		// exit idle
-					//		if (currentStatus == TargetStatus.idle)
+					//		if (process.ProcessName.Equals(blockingName))
 					//		{
-					//			Debug.Log("exiting due to process running: " + name);
+					//			Debug.Log("exiting due to process running: " + blockingName);
 					//			ExitIdle();
+					//			return;
 					//		}
-					//		return;
 					//	}
 					//}
+
+					foreach (string name in blockingProcessNames)
+					{
+						// if process is running
+						Process[] pname = Process.GetProcessesByName(name);
+						if (pname.Length != 0)
+						{
+							// exit idle
+							if (currentStatus == TargetStatus.idle)
+							{
+								Debug.Log("exiting due to process running: " + name);
+								ExitIdle();
+							}
+							return;
+						}
+					}
 				}
 
 				// check timeout
@@ -291,7 +349,7 @@ namespace PowerPlanManager
 			currentStatus = TargetStatus.idle;
 			Debug.Log("entering idle");
 			ppm.ApplyIdlePowerPlan();
-			pmm.ApplyIdlePowerPlan();
+			pmm.ApplyBatterySaverPowerPlan();
 			EnteredIdleEvent?.Invoke();
 			return true;
 		}
@@ -306,7 +364,7 @@ namespace PowerPlanManager
 
 			currentStatus = TargetStatus.use;
 			ppm.ApplyDefaultPowerPlan();
-			pmm.ApplyDefaultPowerPlan();
+			pmm.ApplyBalancedPowerPlan();
 			ExitedIdleEvent?.Invoke();
 			return true;
 		}
