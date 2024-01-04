@@ -53,9 +53,22 @@ namespace PowerPlanManager
 			Debug.Log("drawing");
 
 			// show current status
-			labelStatus.Text = im.CurrentStatus == IdleManager.TargetStatus.use ? "IN USE" : "IDLE";
-			pictureBoxStatus.Image = im.CurrentStatus == IdleManager.TargetStatus.use ? Resources.use.ToBitmap() : Resources.idle.ToBitmap();
-
+			switch (im.CurrentStatus)
+			{
+				case IdleManager.TargetStatus.idle:
+					labelStatus.Text = "IDLE";
+					pictureBoxStatus.Image = Resources.idle.ToBitmap();
+					break;
+				case IdleManager.TargetStatus.balanced:
+					labelStatus.Text = "BALANCED";
+					pictureBoxStatus.Image = Resources.use.ToBitmap();
+					break;
+				case IdleManager.TargetStatus.performance:
+					labelStatus.Text = "PERFORMANCE";
+					pictureBoxStatus.Image = Resources.use.ToBitmap();
+					break;
+			}
+			
 			// show polling interval
 			pollingInterval.Value = im.PollingInterval;
 
@@ -71,82 +84,115 @@ namespace PowerPlanManager
 
 			// show power plans
 			checkBoxUserPowerPlans.Checked = ppm.Enabled;
-			labelCurrentPowerPlan.Text = ppm.currentPlan != null ? ppm.currentPlan.name : "ERROR";
-			comboInUsePP.Items.Clear();
+			labelCurrentPowerPlan.Text = ppm.CurrentPlan != null ? ppm.CurrentPlan.name : "ERROR";
 			comboIdlePP.Items.Clear();
-			foreach (var v in ppm.availablePlans)
+			comboBalancedPP.Items.Clear();
+			comboPerfPP.Items.Clear();
+			foreach (var v in ppm.AvailablePlans)
 			{
-				comboInUsePP.Items.Add(v.Value.name);
 				comboIdlePP.Items.Add(v.Value.name);
+				comboBalancedPP.Items.Add(v.Value.name);
+				comboPerfPP.Items.Add(v.Value.name);
 			}
-			if (ppm.defaultPlan != null) comboInUsePP.SelectedItem = ppm.defaultPlan.name;
-			if (ppm.idlePlan != null) comboIdlePP.SelectedItem = ppm.idlePlan.name;
-			comboInUsePP.Enabled = checkBoxUserPowerPlans.Checked;
+			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.idle, out var ppIdle) && ppIdle != null) comboIdlePP.SelectedItem = ppIdle.name;
+			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.balanced, out var ppBalanced) && ppBalanced != null) comboBalancedPP.SelectedItem = ppBalanced.name;
+			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.performance, out var ppPerf) && ppPerf != null) comboPerfPP.SelectedItem = ppPerf.name;
+
 			comboIdlePP.Enabled = checkBoxUserPowerPlans.Checked;
+			comboBalancedPP.Enabled = checkBoxUserPowerPlans.Checked;
+			comboPerfPP.Enabled = checkBoxUserPowerPlans.Checked;
 
 			// show power modes
 			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
 			checkBoxUsePowerModes.Checked = pmm.Enabled;
 
-			// show processes
-			toggleDisableWithProcesses.Checked = im.DisableWithProcesses;
 			DrawProcesses();
 		}
 
 		void DrawProcesses()
 		{
-			listBoxRunningProcesses.Items.Clear();
-			listBoxRunningProcesses.Sorted = true;
+			listBoxIdle.Items.Clear();
+			listBoxIdle.Sorted = true;
 
-			// get running processes
+			listBoxBalanced.Items.Clear();
+			listBoxBalanced.Sorted = true;
+			
+			listBoxPerformance.Items.Clear();
+			listBoxPerformance.Sorted = true;
+
+			// get 8dle (running) processes
 			System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
 			foreach (System.Diagnostics.Process process in allProcesses)
 			{
 				// filter
-				if (!string.IsNullOrEmpty(textBoxSearchRunningProcesses.Text) && !process.ProcessName.Contains(textBoxSearchRunningProcesses.Text)) continue;
+				//if (!string.IsNullOrEmpty(textBoxSearchRunningProcesses.Text) && !process.ProcessName.Contains(textBoxSearchRunningProcesses.Text)) continue;
+
+				// do not show already added processes
+				if (im.BalancedProcessNames.Contains(process.ProcessName)) continue;
+				if (im.PerformanceProcessNames.Contains(process.ProcessName)) continue;
 
 				// add to list
-				listBoxRunningProcesses.Items.Add(process.ProcessName);
-			}
-
-			// draw disable processes
-			listBoxDisableProcesses.Items.Clear();
-			foreach(var v in im.BlockingProcessNames)
-			{
-				listBoxDisableProcesses.Items.Add(v);
-			}
-		}
-
-		private void textBoxSearchRunningProcesses_TextChanged(object sender, EventArgs e)
-		{
-			DrawProcesses();
-		}
-
-		private void listBoxRunningProcesses_DoubleClick(object sender, EventArgs e)
-		{
-			// add selected to disable with running
-			if (listBoxRunningProcesses.SelectedItem != null)
-			{
-				if (!im.BlockingProcessNames.Contains(listBoxRunningProcesses.SelectedItem.ToString()))
+				if (!listBoxIdle.Items.Contains(process.ProcessName))
 				{
-					im.AddBlockingProcess(listBoxRunningProcesses.SelectedItem.ToString());
+					listBoxIdle.Items.Add(process.ProcessName);
 				}
 			}
+
+			// draw balanced processes
+			foreach(var v in im.BalancedProcessNames)
+			{
+				listBoxBalanced.Items.Add(v);
+			}
+
+			// draw performance processes
+			foreach(var v in im.PerformanceProcessNames)
+			{
+				listBoxPerformance.Items.Add(v);
+			}
+		}
+
+		void buttonIdleToBalanced_Click(object sender, EventArgs e)
+		{
+			if (listBoxIdle.SelectedItem == null) return;
+
+			// move idle to balanced
+			im.AddBalancedProcess(listBoxIdle.SelectedItems.Cast<string>());
+
 			DrawProcesses();
 		}
 
-		private void listBoxDisableProcesses_DoubleClick(object sender, EventArgs e)
+		void buttonBalancedToIdle_Click(object sender, EventArgs e)
 		{
-			// remove disable process
-			if (listBoxDisableProcesses.SelectedItem != null)
-			{
-				if (im.BlockingProcessNames.Contains(listBoxDisableProcesses.SelectedItem.ToString()))
-				{
-					im.RemoveBlockingProcess(listBoxDisableProcesses.SelectedItem.ToString());
-				}
-			}
+			if (listBoxBalanced.SelectedItem == null) return;
+
+			// move balanced to idle
+			im.AddIdleProcess(listBoxBalanced.SelectedItems.Cast<string>());
+
 			DrawProcesses();
 		}
+
+		void buttonBalancedToPerf_Click(object sender, EventArgs e)
+		{
+			if (listBoxBalanced.SelectedItem == null) return;
+
+			// move balanced to perf
+			im.AddPerformanceProcess(listBoxBalanced.SelectedItems.Cast<string>());
+
+			DrawProcesses();
+		}
+
+		void buttonPerfToBalanced_Click(object sender, EventArgs e)
+		{
+			if (listBoxPerformance.SelectedItem == null) return;
+
+			// move balanced to idle
+			im.AddBalancedProcess(listBoxPerformance.SelectedItems.Cast<string>());
+
+			DrawProcesses();
+		}
+
+
+
 
 		#region polling
 
@@ -177,13 +223,6 @@ namespace PowerPlanManager
 			im.InputTimeout = (int)inputTimeout.Value;
 		}
 
-		private void toggleDisableWithProcesses_CheckedChanged(object sender, EventArgs e)
-		{
-			im.DisableWithProcesses = toggleDisableWithProcesses.Checked;
-		}
-
-
-
 		#endregion
 
 		#region power plans
@@ -197,31 +236,32 @@ namespace PowerPlanManager
 		private void checkBoxUserPowerPlans_CheckedChanged(object sender, EventArgs e)
 		{
 			ppm.Enabled = checkBoxUserPowerPlans.Checked;
+			pmm.Enabled = !ppm.Enabled;
 			Draw();
-		}
-
-		private void comboInUsePP_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			string selected = (string)comboInUsePP.SelectedItem;
-			Debug.Log("default power plan selected: " + selected);
-
-			// set plan
-			ppm.defaultPlan = ppm.GetPowerPlanFromName(selected);
-
-			// save pref
-			dm.SetPref("default", ppm.defaultPlan.name);
 		}
 
 		private void comboIdlePP_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			string selected = (string)comboIdlePP.SelectedItem;
-			Debug.Log("idle power plan selected: " + selected);
 
-			// set plan
-			ppm.idlePlan = ppm.GetPowerPlanFromName(selected);
+			// associate PowerPlan with status
+			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.idle);
+		}
 
-			// save pref
-			dm.SetPref("idle", ppm.idlePlan.name);
+		private void comboBalancedPP_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			string selected = (string)comboBalancedPP.SelectedItem;
+
+			// associate PowerPlan with status
+			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.balanced);
+		}
+
+		private void comboPerfPP_SelectedIndexChanged(object sender, EventArgs e)
+		{
+			string selected = (string)comboPerfPP.SelectedItem;
+			
+			// associate PowerPlan with status
+			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.performance);
 		}
 
 		#endregion
@@ -236,23 +276,25 @@ namespace PowerPlanManager
 		private void checkBoxUsePowerModes_CheckedChanged(object sender, EventArgs e)
 		{
 			pmm.Enabled = checkBoxUsePowerModes.Checked;
+			ppm.Enabled = !pmm.Enabled;
+			Draw();
 		}
 
 		private void button1_Click(object sender, EventArgs e)
 		{
-			pmm.ApplyBatterySaverPowerPlan();
+			pmm.ApplyBatterySaverPowerMode();
 			Draw();
 		}
 
 		private void button2_Click(object sender, EventArgs e)
 		{
-			pmm.ApplyBalancedPowerPlan();
+			pmm.ApplyBalancedPowerMode();
 			Draw();
 		}
 
 		private void buttonApplyPerformanceMode_Click(object sender, EventArgs e)
 		{
-			pmm.ApplyPerformancePowerPlan();
+			pmm.ApplyPerformancePowerMode();
 			Draw();
 		}
 
@@ -263,12 +305,6 @@ namespace PowerPlanManager
 
 
 
-
-
-
-
 		#endregion
-
-		
 	}
 }

@@ -64,30 +64,29 @@ namespace PowerPlanManager
 			trayIcon.MouseDoubleClick += OnDoubleClick;
 
 			// register with idle manager events
-			im.EnteredIdleEvent += OnEnteredIdle;
-			im.ExitedIdleEvent += OnExitedIdle;
-			OnExitedIdle();
-
+			im.ChangedStatusEvent += OnChangedStatus;
 			contextMenuStrip.ResumeLayout(false);
+
+			// show icon
+			OnChangedStatus(im.CurrentStatus);
 		}
 
-		private void OnExitedIdle()
+		void OnChangedStatus(IdleManager.TargetStatus status)
 		{
 			try
 			{
-				trayIcon.Icon = Resources.use;
-			}
-			catch (System.Exception ex)
-			{
-				Debug.LogError("failed to set icon");
-			}
-		}
-
-		private void OnEnteredIdle()
-		{
-			try
-			{
-				trayIcon.Icon = Resources.idle;
+				switch (status)
+				{
+					case IdleManager.TargetStatus.idle:
+						trayIcon.Icon = Resources.idle;
+						break;
+					case IdleManager.TargetStatus.balanced:
+						trayIcon.Icon = Resources.use;
+						break;
+					case IdleManager.TargetStatus.performance:
+						trayIcon.Icon = Resources.use;
+						break;
+				}
 			}
 			catch (System.Exception ex)
 			{

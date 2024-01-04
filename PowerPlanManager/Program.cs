@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -27,14 +28,14 @@ namespace PowerPlanManager
 
 			// ask to install if not installed
 			SelfInstaller si = new SelfInstaller();
-//#if !DEBUG
+#if !DEBUG
 			if (!si.IsInstalled() && si.AskToInstall())
 			{
 				si.Install();
 				Application.Exit();
 				return;
 			}
-//#endif
+#endif
 
 			// init data
 			DataManager dm = new DataManager(si);
@@ -55,6 +56,7 @@ namespace PowerPlanManager
 
 			// run message pump
 			Application.Run();
+			
 		}
 
 	}

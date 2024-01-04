@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Diagnostics;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -85,103 +86,101 @@ namespace PowerPlanManager
 			}
 		}
 
-		bool disableWithProcesses = true;
-		public bool DisableWithProcesses
+
+
+		List<string> balancedProcessNames = new List<string>();
+		List<string> performanceProcessNames = new List<string>();
+
+		public IReadOnlyList<string> BalancedProcessNames => balancedProcessNames;
+		public IReadOnlyList<string> PerformanceProcessNames => performanceProcessNames;
+
+		public void AddIdleProcess(IEnumerable<string> names)
 		{
-			get
+			foreach (var v in names)
 			{
-				return disableWithProcesses;
-			}
-			set
-			{
-				if (value != disableWithProcesses)
+				string name = v.Trim();
+				if (string.IsNullOrEmpty(name)) return;
+
+				// remove process from balanced and perf list
+				if (balancedProcessNames.Contains(name))
 				{
-					disableWithProcesses = value;
-					dm.SetPref("disableWithProcesses", value.ToString());
+					balancedProcessNames.Remove(name);
+				}
+				if (performanceProcessNames.Contains(name))
+				{
+					performanceProcessNames.Remove(name);
 				}
 			}
+			SaveProcessNames();
 		}
 
-		//string disableProcesses = ""; // "Netflix\ndevenv\nUnity"; //WWAHost?
-		//public string DisableProcesses
-		//{
-		//	get
-		//	{
-		//		return disableProcesses;
-		//	}
-		//	set
-		//	{
-		//		value = value.Replace('\n', '|');
-		//		value = value.Replace(',', '|');
-		//		if (value != disableProcesses)
-		//		{
-		//			disableProcesses = value;
-		//			dm.SetPref("disableProcesses", value.ToString());
-		//			RebuildProcessList();
-		//		}
-		//	}
-		//}
-
-		List<string> blockingProcessNames = new List<string>();
-		public IReadOnlyList<string> BlockingProcessNames => blockingProcessNames;
-
-		public void AddBlockingProcess(string name)
+		public void AddBalancedProcess(IEnumerable<string> names)
 		{
-			if (!string.IsNullOrEmpty(name))
+			foreach(var v in names)
 			{
-				if (!blockingProcessNames.Contains(name))
+				string name = v.Trim();
+				if (string.IsNullOrEmpty(name)) return;
+
+				// add process to balanced
+				if (!balancedProcessNames.Contains(name))
 				{
-					blockingProcessNames.Add(name);
-					SaveBlockingProcessList();
+					balancedProcessNames.Add(name);
+				}
+				if (performanceProcessNames.Contains(name))
+				{
+					performanceProcessNames.Remove(name);
 				}
 			}
+			SaveProcessNames();
 		}
 
-		public void RemoveBlockingProcess(string name)
+		public void AddPerformanceProcess(IEnumerable<string> names)
 		{
-			if (blockingProcessNames.Contains(name))
+			foreach (var v in names)
 			{
-				blockingProcessNames.Remove(name);
-				SaveBlockingProcessList();
-			}
-		}
+				string name = v.Trim();
+				if (string.IsNullOrEmpty(name)) return;
 
-		void SaveBlockingProcessList()
-		{
-			string s = "";
-			foreach (var v in blockingProcessNames)
-			{
-				if (!string.IsNullOrEmpty(v))
+				// add process to performance
+				if (balancedProcessNames.Contains(name))
 				{
-					s += v + "|";
+					balancedProcessNames.Remove(name);
+				}
+				if (!performanceProcessNames.Contains(name))
+				{
+					performanceProcessNames.Add(name);
 				}
 			}
-			dm.SetPref("disableProcesses", s);
+			SaveProcessNames();
 		}
 
-		//public List<string> BlockingProcessNames
-		//{
-		//	get
-		//	{
-		//		return blockingProcessNames;
-		//	}
-		//	set
-		//	{
-		//		if (value != blockingProcessNames)
-		//		{
-		//			string s = "";
-		//			foreach(var v in value)
-		//			{
-		//				s += v + "|";
-		//			}
-		//			dm.SetPref("disableProcesses", s);
-		//			blockingProcessNames = value;
-		//		}
-		//	}
-		//}
+		void SaveProcessNames()
+		{
+			{
+				string s = "";
+				foreach (var v in balancedProcessNames)
+				{
+					if (!string.IsNullOrEmpty(v))
+					{
+						s += v + "|";
+					}
+				}
+				dm.SetPref("balancedProcessNames", s);
+			}
+			{
+				string s = "";
+				foreach (var v in performanceProcessNames)
+				{
+					if (!string.IsNullOrEmpty(v))
+					{
+						s += v + "|";
+					}
+				}
+				dm.SetPref("performanceProcessNames", s);
+			}
+		}
 
-		public Action EnteredIdleEvent;
-		public Action ExitedIdleEvent;
+		public Action<TargetStatus> ChangedStatusEvent;
 
 
 		BackgroundWorker bw;
@@ -202,8 +201,7 @@ namespace PowerPlanManager
 			IdleOnTimeout = dm.GetPref("idleOnTimeout", idleOnTimeout);
 			InputTimeout = dm.GetPref("inputTimeout", inputTimeout);
 			PollingInterval = dm.GetPref("pollingInterval", pollingInterval);
-			DisableWithProcesses = dm.GetPref("disableWithProcesses", disableWithProcesses);
-			RebuildProcessList(dm.GetPref("disableProcesses", ""));
+			RebuildProcessList();
 			
 			// init background worker and start
 			bw = new BackgroundWorker();
@@ -218,15 +216,42 @@ namespace PowerPlanManager
 
 		bool close = false;
 
-		void RebuildProcessList(string text)
+		void RebuildProcessList()
 		{
-			blockingProcessNames.Clear();
-			if (!string.IsNullOrEmpty(text))
 			{
-				string[] ss = text.Split('\n', '|', ',');
-				foreach (var s in ss)
+				string pref = dm.GetPref("balancedProcessNames", "");
+				balancedProcessNames.Clear();
+				if (!string.IsNullOrEmpty(pref))
 				{
-					if (!string.IsNullOrEmpty(s)) blockingProcessNames.Add(s);
+					string[] ss = pref.Split('\n', '|', ',');
+					foreach (var s in ss)
+					{
+						if (!string.IsNullOrEmpty(s))
+						{
+							if (!balancedProcessNames.Contains(s))
+							{
+								balancedProcessNames.Add(s);
+							}
+						}
+					}
+				}
+			}
+			{ 
+				string pref = dm.GetPref("performanceProcessNames", "");
+				performanceProcessNames.Clear();
+				if (!string.IsNullOrEmpty(pref))
+				{
+					string[] ss = pref.Split('\n', '|', ',');
+					foreach (var s in ss)
+					{
+						if (!string.IsNullOrEmpty(s))
+						{
+							if (!performanceProcessNames.Contains(s))
+							{
+								performanceProcessNames.Add(s);
+							}
+						}
+					}
 				}
 			}
 		}
@@ -250,46 +275,48 @@ namespace PowerPlanManager
 
 		internal enum TargetStatus
 		{
-			use,
 			idle,
+			balanced,
+			performance,
 		}
 
-		TargetStatus currentStatus = TargetStatus.use;
+		TargetStatus currentStatus = TargetStatus.balanced;
 		internal TargetStatus CurrentStatus => currentStatus;
 
 		void Poll()
 		{
+#if DEBUG
+			Debug.Log("polling");
+#endif
 			try
 			{
-				// check processes
-				if (blockingProcessNames != null && blockingProcessNames.Count > 0)
+				// check performance process
+				if (performanceProcessNames != null && performanceProcessNames.Count > 0)
 				{
-					//System.Diagnostics.Process[] allProcesses = System.Diagnostics.Process.GetProcesses();
-					//foreach (System.Diagnostics.Process process in allProcesses)
-					//{
-					//	foreach (string blockingName in blockingProcessNames)
-					//	{
-					//		if (process.ProcessName.Equals(blockingName))
-					//		{
-					//			Debug.Log("exiting due to process running: " + blockingName);
-					//			ExitIdle();
-					//			return;
-					//		}
-					//	}
-					//}
-
-					foreach (string name in blockingProcessNames)
+					foreach(string name in performanceProcessNames)
 					{
-						// if process is running
-						Process[] pname = Process.GetProcessesByName(name);
-						if (pname.Length != 0)
+						if (IsProcessRunning(name))
 						{
-							// exit idle
-							if (currentStatus == TargetStatus.idle)
-							{
-								Debug.Log("exiting due to process running: " + name);
-								ExitIdle();
-							}
+#if DEBUG
+							Debug.Log("performance process is running: " + name);
+#endif
+							GoToStatus(TargetStatus.performance);
+							return;
+						}
+					}
+				}
+
+				// check balanced process
+				if (balancedProcessNames != null && balancedProcessNames.Count > 0)
+				{
+					foreach (string name in balancedProcessNames)
+					{
+						if (IsProcessRunning(name))
+						{
+#if DEBUG
+							Debug.Log("balanced process is running: " + name);
+#endif
+							GoToStatus(TargetStatus.balanced);
 							return;
 						}
 					}
@@ -302,10 +329,12 @@ namespace PowerPlanManager
 					if (idleTime.TotalSeconds >= inputTimeout)
 					{
 						// enter idle
-						if (currentStatus == TargetStatus.use)
+						if (currentStatus != TargetStatus.idle)
 						{
+#if DEBUG
 							Debug.Log("entering idle due to user input timeout");
-							EnterIdle();
+#endif
+							GoToStatus(TargetStatus.idle);
 						}
 						return;
 					}
@@ -317,10 +346,12 @@ namespace PowerPlanManager
 					if (GetScreenSaverRunning())
 					{
 						// enter idle
-						if (currentStatus == TargetStatus.use)
+						if (currentStatus != TargetStatus.idle)
 						{
+#if DEBUG
 							Debug.Log("entering idle due to screen saver running");
-							EnterIdle();
+#endif
+							GoToStatus(TargetStatus.idle);
 						}
 						return;
 					}
@@ -328,8 +359,10 @@ namespace PowerPlanManager
 
 				if (currentStatus == TargetStatus.idle)
 				{
+#if DEBUG
 					Debug.Log("exiting idle due to user input");
-					ExitIdle();
+#endif
+					GoToStatus(TargetStatus.balanced);
 				}
 			}
 			catch (Exception ex)
@@ -338,36 +371,43 @@ namespace PowerPlanManager
 			}
 		}
 
-		bool EnterIdle()
+		void GoToStatus(TargetStatus status)
 		{
-			if (currentStatus != TargetStatus.use)
-			{
-				Debug.LogError("cannot enter idle: already in idle");
-				return false;
-			}
+			if (currentStatus == status) return;
 
-			currentStatus = TargetStatus.idle;
-			Debug.Log("entering idle");
-			ppm.ApplyIdlePowerPlan();
-			pmm.ApplyBatterySaverPowerPlan();
-			EnteredIdleEvent?.Invoke();
-			return true;
+			currentStatus = status;
+			switch (status)
+			{
+				case TargetStatus.idle:
+					Debug.Log("applying idle");
+					ppm.ApplyPowerPlanForStatus(currentStatus);
+					pmm.ApplyBatterySaverPowerMode();
+					ChangedStatusEvent?.Invoke(currentStatus);
+					break;
+
+				case TargetStatus.balanced:
+					Debug.Log("applying balanced");
+					ppm.ApplyPowerPlanForStatus(currentStatus);
+					pmm.ApplyBalancedPowerMode();
+					ChangedStatusEvent?.Invoke(currentStatus);
+					break;
+
+				case TargetStatus.performance:
+					Debug.Log("applying performance");
+					ppm.ApplyPowerPlanForStatus(currentStatus);
+					pmm.ApplyBalancedPowerMode();
+					ChangedStatusEvent?.Invoke(currentStatus);
+					break;
+			}
 		}
 
-		bool ExitIdle()
+		bool IsProcessRunning(string name)
 		{
-			if (currentStatus != TargetStatus.idle)
-			{
-				Debug.LogError("cannot exit idle: already exited");
-				return false;
-			}
-
-			currentStatus = TargetStatus.use;
-			ppm.ApplyDefaultPowerPlan();
-			pmm.ApplyBalancedPowerPlan();
-			ExitedIdleEvent?.Invoke();
-			return true;
+			Process[] pname = Process.GetProcessesByName(name);
+			return pname.Length != 0;
 		}
+
+
 
 		#region idle timer
 

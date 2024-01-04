@@ -48,17 +48,17 @@ namespace PowerPlanManager
 			return s;
 		}
 
-		internal void ApplyBatterySaverPowerPlan()
+		internal void ApplyBatterySaverPowerMode()
 		{
 			ApplyPowerMode(PowerMode.BetterBattery);
 		}
 
-		internal void ApplyBalancedPowerPlan()
+		internal void ApplyBalancedPowerMode()
 		{
 			ApplyPowerMode(PowerMode.BetterPerformance);
 		}
 		
-		internal void ApplyPerformancePowerPlan()
+		internal void ApplyPerformancePowerMode()
 		{
 			ApplyPowerMode(PowerMode.BestPerformance);
 		}

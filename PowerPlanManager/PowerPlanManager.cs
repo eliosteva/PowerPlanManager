@@ -33,6 +33,17 @@ namespace PowerPlanManager
 			ACCESS_INDIVIDUAL_SETTING = 18
 		}
 
+		private const uint ERROR_MORE_DATA = 234;
+
+		private static Guid NO_SUBGROUP_GUID = new Guid("fea3413e-7e05-4911-9a71-700331f1c294");
+		private static Guid GUID_DISK_SUBGROUP = new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442");
+		private static Guid GUID_SYSTEM_BUTTON_SUBGROUP = new Guid("4f971e89-eebd-4455-a8de-9e59040e7347");
+		private static Guid GUID_PROCESSOR_SETTINGS_SUBGROUP = new Guid("54533251-82be-4824-96c1-47b60b740d00");
+		private static Guid GUID_VIDEO_SUBGROUP = new Guid("7516b95f-f776-4464-8c53-06167f40cc99");
+		private static Guid GUID_BATTERY_SUBGROUP = new Guid("e73a048d-bf27-4f12-9731-8b2076e8891f");
+		private static Guid GUID_SLEEP_SUBGROUP = new Guid("238C9FA8-0AAD-41ED-83F4-97BE242C8F20");
+		private static Guid GUID_PCIEXPRESS_SETTINGS_SUBGROUP = new Guid("501a4d13-42af-4429-9fd1-a8218c268e20");
+
 		[DllImport("PowrProf.dll")]
 		static extern UInt32 PowerEnumerate(IntPtr RootPowerKey, IntPtr SchemeGuid, IntPtr SubGroupOfPowerSettingGuid, UInt32 AcessFlags, UInt32 Index, ref Guid Buffer, ref UInt32 BufferSize);
 
@@ -45,17 +56,25 @@ namespace PowerPlanManager
 		[DllImport("PowrProf.dll", CharSet = CharSet.Unicode)]
 		static extern UInt32 PowerSetActiveScheme(IntPtr RootPowerKey, [MarshalAs(UnmanagedType.LPStruct)] Guid SchemeGuid);
 
+		[DllImport("powrprof.dll")]
+		static extern uint PowerReadACValue( IntPtr RootPowerKey, IntPtr SchemeGuid, IntPtr SubGroupOfPowerSettingGuid, ref Guid PowerSettingGuid, ref int Type, ref IntPtr Buffer, ref uint BufferSize );
+
+		[DllImport("kernel32.dll")] 
+		static extern IntPtr LocalFree( IntPtr hMem );
+
 		#endregion
 
 		internal Action PowerPlanChangedEvent;
 
 		DataManager dm;
 		bool enabled = false;
+		Dictionary<IdleManager.TargetStatus, LegacyPowerPlan> statusPlans = new Dictionary<IdleManager.TargetStatus, LegacyPowerPlan>();
+		Dictionary<Guid, LegacyPowerPlan> availablePlans = new Dictionary<Guid, LegacyPowerPlan>();
+		LegacyPowerPlan currentPlan = null;
 
-		public Dictionary<Guid, LegacyPowerPlan> availablePlans = new Dictionary<Guid, LegacyPowerPlan>();
-		public LegacyPowerPlan currentPlan = null;
-		public LegacyPowerPlan defaultPlan = null;
-		public LegacyPowerPlan idlePlan = null;
+		public IReadOnlyDictionary<IdleManager.TargetStatus, LegacyPowerPlan> StatusPlans => statusPlans;
+		public IReadOnlyDictionary<Guid, LegacyPowerPlan> AvailablePlans => availablePlans;
+		public LegacyPowerPlan CurrentPlan => currentPlan;
 
 		internal bool Enabled
 		{
@@ -80,19 +99,23 @@ namespace PowerPlanManager
 			currentPlan = GetPowerPlanFromGuid(GetCurrentPowerPlan());
 
 			// load from prefs
-			defaultPlan = GetPowerPlanFromName(dm.GetPref("default"));
-			idlePlan = GetPowerPlanFromName(dm.GetPref("idle"));
+			statusPlans.Clear();
+			statusPlans.Add(IdleManager.TargetStatus.idle, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.idle.ToString())));
+			statusPlans.Add(IdleManager.TargetStatus.balanced, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.balanced.ToString())));
+			statusPlans.Add(IdleManager.TargetStatus.performance, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.performance.ToString())));
 			enabled = dm.GetPref<bool>("ppm_enabled", enabled);
 		}
 
-		internal void ApplyIdlePowerPlan()
+		internal void ApplyPowerPlanForStatus(IdleManager.TargetStatus status)
 		{
-			ApplyPowerPlan(idlePlan);
-		}
+			if (!statusPlans.ContainsKey(status))
+			{
+				Debug.LogError("cannot apply PowerPlan: no PowerPlan associated with status " + status);
+				return;
+			}
 
-		internal void ApplyDefaultPowerPlan()
-		{
-			ApplyPowerPlan(defaultPlan);
+			// apply plan for status
+			ApplyPowerPlan(statusPlans[status]);
 		}
 
 		internal LegacyPowerPlan GetPowerPlanFromName(string s)
@@ -107,9 +130,37 @@ namespace PowerPlanManager
 
 		internal LegacyPowerPlan GetPowerPlanFromGuid(Guid guid)
 		{
-			return availablePlans[guid];
+			if (availablePlans.ContainsKey(guid)) return availablePlans[guid];
+			return null;
 		}
 
+		internal void AssociatePowerPlanWithStatus(string name, IdleManager.TargetStatus status)
+		{
+			LegacyPowerPlan pp = GetPowerPlanFromName(name);
+			if (pp != null)
+			{
+				if (!statusPlans.ContainsKey(status))
+				{
+					Debug.Log("associating PowerPlan " + name + " to status " + status);
+					statusPlans.Add(status, pp);
+
+					// save pref
+					dm.SetPref(status.ToString(), name);
+				}
+				else
+				{
+					// only if changed
+					if (statusPlans[status] != pp)
+					{
+						Debug.Log("associating PowerPlan " + name + " to status " + status);
+						statusPlans[status] = pp;
+
+						// save pref
+						dm.SetPref(status.ToString(), name);
+					}
+				}
+			}
+		}
 
 
 		void ApplyPowerPlan(LegacyPowerPlan targetPlan)
@@ -142,13 +193,12 @@ namespace PowerPlanManager
 		}
 
 
-
 		static string ReadFriendlyName(Guid schemeGuid)
 		{
 			uint sizeName = 1024;
 			IntPtr pSizeName = Marshal.AllocHGlobal((int)sizeName);
 
-			string friendlyName;
+			string friendlyName = "";
 
 			try
 			{
@@ -198,6 +248,8 @@ namespace PowerPlanManager
 		{
 			PowerSetActiveScheme(IntPtr.Zero, guid);
 		}
+
+		
 
 
 

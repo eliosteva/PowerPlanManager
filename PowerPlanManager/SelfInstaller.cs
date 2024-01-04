@@ -27,14 +27,6 @@ namespace PowerPlanManager
 		string targetAppPath;
 		string targetExePath;
 
-
-		//string currentExePath = "";
-		//string currentDllPath = "";
-		//string currentExeDir = "";
-		//string appdataDirPath = "";
-		//string appdataExePath = "";
-		//string appdataDllPath = "";
-
 		public string AppDataDirPath => targetAppDirPath;
 		
 		internal SelfInstaller()
@@ -48,13 +40,6 @@ namespace PowerPlanManager
 			targetAppPath = Path.Combine(targetAppDirPath, appName);
 			targetExePath = targetAppPath + ".exe";
 
-			////currentExePath = System.Reflection.Assembly.GetEntryAssembly().Location;
-			//currentExePath = Application.ExecutablePath;
-			//currentDllPath = System.Reflection.Assembly.GetEntryAssembly().Location;
-			//currentExeDir = Path.GetDirectoryName(currentAppPath);
-			//appdataDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), companyName);
-			//appdataExePath = Path.Combine(appdataDirPath, programName + ".exe");
-			//appdataDllPath = Path.Combine(appdataDirPath, programName + ".dll");
 		}
 
 		internal bool IsAutostarting()
