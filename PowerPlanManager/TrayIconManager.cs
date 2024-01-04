@@ -81,10 +81,10 @@ namespace PowerPlanManager
 						trayIcon.Icon = Resources.idle;
 						break;
 					case IdleManager.TargetStatus.balanced:
-						trayIcon.Icon = Resources.use;
+						trayIcon.Icon = Resources.balanced;
 						break;
 					case IdleManager.TargetStatus.performance:
-						trayIcon.Icon = Resources.use;
+						trayIcon.Icon = Resources.performance;
 						break;
 				}
 			}

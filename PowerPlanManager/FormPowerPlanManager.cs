@@ -61,11 +61,11 @@ namespace PowerPlanManager
 					break;
 				case IdleManager.TargetStatus.balanced:
 					labelStatus.Text = "BALANCED";
-					pictureBoxStatus.Image = Resources.use.ToBitmap();
+					pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 					break;
 				case IdleManager.TargetStatus.performance:
 					labelStatus.Text = "PERFORMANCE";
-					pictureBoxStatus.Image = Resources.use.ToBitmap();
+					pictureBoxStatus.Image = Resources.performance.ToBitmap();
 					break;
 			}
 			
