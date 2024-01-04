@@ -3,14 +3,14 @@
 
 
 # How it works:
-The software attempts to detect if the user is actually using the computer, and if not it changes the current Power Plan (or the newer Power Mode), and reverts it back whenever the user resumes using the pc.
+The software attempts to detect if the user is actually using the computer, and if not it changes the current Power Plan or Power Mode, and reverts it back whenever the user resumes using the pc.
 There are 2 main methods of detecting user idle:
 ### 1. Mouse movement:
 Detects mouse movement between each polling event.
 ### 2. Screensaver:
 Detects if Windows is showing a screensaver.
 
-It is also possible to prevent PPM from working if a given process is running (eg. when watching a movie).
+It is also possible to prevent PPM from entering idle if a process is running (eg. when playing games).
 
 # Installation:
 Upon starting, PPM asks if it can copy itself to its folder in %appdata%, where it will work and save the log and preferences file.
@@ -28,5 +28,5 @@ I'm using WinForms as i'm most familiar with it. You're welcome to contribute :)
 I made this software for my personal use and was done in a rush. You're welcome to contribute :)
 
 # NOTICE:
-This software works on my PC, running Windows 11. It might work on other versions of Windows, but i haven't tested it. It probably won't work for versions older than Windows 10. 
+This software works on my laptop PC, running Windows 11. It probably won't work for versions older than Windows 10. 
 It also probably requires some form of .Net redistributable installed.
