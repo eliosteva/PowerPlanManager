@@ -56,15 +56,15 @@ namespace PowerPlanManager
 			switch (im.CurrentStatus)
 			{
 				case IdleManager.TargetStatus.idle:
-					labelStatus.Text = "IDLE";
+					labelStatus.Text = "IDLE " + im.CurrentStatusCause;
 					pictureBoxStatus.Image = Resources.idle.ToBitmap();
 					break;
 				case IdleManager.TargetStatus.balanced:
-					labelStatus.Text = "BALANCED";
+					labelStatus.Text = "BALANCED " + im.CurrentStatusCause;
 					pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 					break;
 				case IdleManager.TargetStatus.performance:
-					labelStatus.Text = "PERFORMANCE";
+					labelStatus.Text = "PERFORMANCE " + im.CurrentStatusCause;
 					pictureBoxStatus.Image = Resources.performance.ToBitmap();
 					break;
 			}
@@ -101,6 +101,10 @@ namespace PowerPlanManager
 			comboIdlePP.Enabled = checkBoxUserPowerPlans.Checked;
 			comboBalancedPP.Enabled = checkBoxUserPowerPlans.Checked;
 			comboPerfPP.Enabled = checkBoxUserPowerPlans.Checked;
+
+			buttonApplyPowerSaverMode.Enabled = checkBoxUsePowerModes.Checked;
+			buttonApplyBalancedMode.Enabled = checkBoxUsePowerModes.Checked;
+			buttonApplyPerformanceMode.Enabled = checkBoxUsePowerModes.Checked;
 
 			// show power modes
 			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
@@ -191,7 +195,10 @@ namespace PowerPlanManager
 			DrawProcesses();
 		}
 
-
+		void buttonRefreshPrcesses_Click(object sender, EventArgs e)
+		{
+			Draw();
+		}
 
 
 		#region polling
@@ -305,6 +312,27 @@ namespace PowerPlanManager
 
 
 
+
 		#endregion
+
+		private void buttonResetForced_Click(object sender, EventArgs e)
+		{
+			im.ResetForced();
+		}
+
+		private void buttonForceIdle_Click(object sender, EventArgs e)
+		{
+			im.ForceStatus(IdleManager.TargetStatus.idle);
+		}
+
+		private void buttonForceBalanced_Click(object sender, EventArgs e)
+		{
+			im.ForceStatus(IdleManager.TargetStatus.balanced);
+		}
+
+		private void buttonForcePerformance_Click(object sender, EventArgs e)
+		{
+			im.ForceStatus(IdleManager.TargetStatus.performance);
+		}
 	}
 }

@@ -282,6 +282,8 @@ namespace PowerPlanManager
 
 		TargetStatus currentStatus = TargetStatus.balanced;
 		internal TargetStatus CurrentStatus => currentStatus;
+		internal string CurrentStatusCause = "";
+		bool forced = false;
 
 		void Poll()
 		{
@@ -290,6 +292,15 @@ namespace PowerPlanManager
 #endif
 			try
 			{
+				// check forced
+				if (forced)
+				{
+#if DEBUG
+					Debug.Log("current status is forced");
+#endif
+					return;
+				}
+
 				// check performance process
 				if (performanceProcessNames != null && performanceProcessNames.Count > 0)
 				{
@@ -300,7 +311,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("performance process is running: " + name);
 #endif
-							GoToStatus(TargetStatus.performance);
+							GoToStatus(TargetStatus.performance, "process running (" + name +  ")");
 							return;
 						}
 					}
@@ -316,7 +327,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("balanced process is running: " + name);
 #endif
-							GoToStatus(TargetStatus.balanced);
+							GoToStatus(TargetStatus.balanced, "process running (" + name + ")");
 							return;
 						}
 					}
@@ -334,7 +345,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("entering idle due to user input timeout");
 #endif
-							GoToStatus(TargetStatus.idle);
+							GoToStatus(TargetStatus.idle, "user input timeout");
 						}
 						return;
 					}
@@ -351,18 +362,18 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("entering idle due to screen saver running");
 #endif
-							GoToStatus(TargetStatus.idle);
+							GoToStatus(TargetStatus.idle, "screen saver running");
 						}
 						return;
 					}
 				}
 
-				if (currentStatus == TargetStatus.idle)
+				if (currentStatus != TargetStatus.balanced)
 				{
 #if DEBUG
 					Debug.Log("exiting idle due to user input");
 #endif
-					GoToStatus(TargetStatus.balanced);
+					GoToStatus(TargetStatus.balanced, "user input detected");
 				}
 			}
 			catch (Exception ex)
@@ -371,11 +382,14 @@ namespace PowerPlanManager
 			}
 		}
 
-		void GoToStatus(TargetStatus status)
+		void GoToStatus(TargetStatus status, string cause)
 		{
+			CurrentStatusCause = cause;
+
 			if (currentStatus == status) return;
 
 			currentStatus = status;
+
 			switch (status)
 			{
 				case TargetStatus.idle:
@@ -407,7 +421,16 @@ namespace PowerPlanManager
 			return pname.Length != 0;
 		}
 
+		internal void ForceStatus(TargetStatus status)
+		{
+			forced = true;
+			GoToStatus(status, "forced");
+		}
 
+		internal void ResetForced()
+		{
+			forced = false;
+		}
 
 		#region idle timer
 
