@@ -7,6 +7,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static PowerPlanManager.PowerPlanManager;
 
 namespace PowerPlanManager
 {
@@ -27,7 +28,7 @@ namespace PowerPlanManager
 			this.im = im;
 			this.dm = dm;
 
-			this.ppm.PowerPlanChangedEvent += DrawInvoke;
+			this.ppm.PowerPlanAppliedEvent += DrawInvoke;
 			this.pmm.PowerModeChangedEvent += DrawInvoke;
 
 			InitializeComponent();
@@ -38,7 +39,7 @@ namespace PowerPlanManager
 		protected override void OnClosing(CancelEventArgs e)
 		{
 			Debug.Log("closing form");
-			this.ppm.PowerPlanChangedEvent -= DrawInvoke;
+			this.ppm.PowerPlanAppliedEvent -= DrawInvoke;
 			this.pmm.PowerModeChangedEvent -= DrawInvoke;
 			base.OnClosing(e);
 		}
@@ -53,22 +54,22 @@ namespace PowerPlanManager
 			Debug.Log("drawing");
 
 			// show current status
-			switch (im.CurrentStatus)
+			switch (im.CurrentMode)
 			{
-				case IdleManager.TargetStatus.idle:
-					labelStatus.Text = "IDLE " + im.CurrentStatusCause;
+				case PowerModes.idle:
+					labelStatus.Text = "IDLE " + im.CurrentModeReason;
 					pictureBoxStatus.Image = Resources.idle.ToBitmap();
 					break;
-				case IdleManager.TargetStatus.balanced:
-					labelStatus.Text = "BALANCED " + im.CurrentStatusCause;
+				case PowerModes.balanced:
+					labelStatus.Text = "BALANCED " + im.CurrentModeReason;
 					pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 					break;
-				case IdleManager.TargetStatus.performance:
-					labelStatus.Text = "PERFORMANCE " + im.CurrentStatusCause;
+				case PowerModes.performance:
+					labelStatus.Text = "PERFORMANCE " + im.CurrentModeReason;
 					pictureBoxStatus.Image = Resources.performance.ToBitmap();
 					break;
 			}
-			
+
 			// show polling interval
 			pollingInterval.Value = im.PollingInterval;
 
@@ -81,35 +82,13 @@ namespace PowerPlanManager
 			// show timeout
 			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
 			inputTimeout.Value = im.InputTimeout;
-
-			// show power plans
-			checkBoxUserPowerPlans.Checked = ppm.Enabled;
-			labelCurrentPowerPlan.Text = ppm.CurrentPlan != null ? ppm.CurrentPlan.name : "ERROR";
-			comboIdlePP.Items.Clear();
-			comboBalancedPP.Items.Clear();
-			comboPerfPP.Items.Clear();
-			foreach (var v in ppm.AvailablePlans)
-			{
-				comboIdlePP.Items.Add(v.Value.name);
-				comboBalancedPP.Items.Add(v.Value.name);
-				comboPerfPP.Items.Add(v.Value.name);
-			}
-			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.idle, out var ppIdle) && ppIdle != null) comboIdlePP.SelectedItem = ppIdle.name;
-			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.balanced, out var ppBalanced) && ppBalanced != null) comboBalancedPP.SelectedItem = ppBalanced.name;
-			if (ppm.StatusPlans.TryGetValue(IdleManager.TargetStatus.performance, out var ppPerf) && ppPerf != null) comboPerfPP.SelectedItem = ppPerf.name;
-
-			comboIdlePP.Enabled = checkBoxUserPowerPlans.Checked;
-			comboBalancedPP.Enabled = checkBoxUserPowerPlans.Checked;
-			comboPerfPP.Enabled = checkBoxUserPowerPlans.Checked;
-
-			buttonApplyPowerSaverMode.Enabled = checkBoxUsePowerModes.Checked;
-			buttonApplyBalancedMode.Enabled = checkBoxUsePowerModes.Checked;
-			buttonApplyPerformanceMode.Enabled = checkBoxUsePowerModes.Checked;
+			displayTimeout.Value = ppm.DisplayTimeout;
+			sleepTimeout.Value = ppm.SleepTimeout;
+			hibernateTimeout.Value = ppm.HibernateTimeout;
 
 			// show power modes
 			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
-			checkBoxUsePowerModes.Checked = pmm.Enabled;
-
+			
 			DrawProcesses();
 		}
 
@@ -120,7 +99,7 @@ namespace PowerPlanManager
 
 			listBoxBalanced.Items.Clear();
 			listBoxBalanced.Sorted = true;
-			
+
 			listBoxPerformance.Items.Clear();
 			listBoxPerformance.Sorted = true;
 
@@ -143,13 +122,13 @@ namespace PowerPlanManager
 			}
 
 			// draw balanced processes
-			foreach(var v in im.BalancedProcessNames)
+			foreach (var v in im.BalancedProcessNames)
 			{
 				listBoxBalanced.Items.Add(v);
 			}
 
 			// draw performance processes
-			foreach(var v in im.PerformanceProcessNames)
+			foreach (var v in im.PerformanceProcessNames)
 			{
 				listBoxPerformance.Items.Add(v);
 			}
@@ -201,111 +180,78 @@ namespace PowerPlanManager
 		}
 
 
-		#region polling
+		#region options
 
-		private void toggleAutoStart_CheckedChanged(object sender, EventArgs e)
+		void toggleAutoStart_CheckedChanged(object sender, EventArgs e)
 		{
 			si.SetAutoStart(toggleAutoStart.Checked);
 		}
 
-		private void pollingInterval_ValueChanged(object sender, EventArgs e)
+		void pollingInterval_ValueChanged(object sender, EventArgs e)
 		{
 			im.PollingInterval = (int)pollingInterval.Value;
 		}
 
-		private void toggleIdleOnScreensaver_CheckedChanged(object sender, EventArgs e)
+		void toggleIdleOnScreensaver_CheckedChanged(object sender, EventArgs e)
 		{
 			im.IdleOnScreensaver = toggleIdleOnScreensaver.Checked;
 			Draw();
 		}
 
-		private void toggleIdleOnTimeout_CheckedChanged(object sender, EventArgs e)
+		void toggleIdleOnTimeout_CheckedChanged(object sender, EventArgs e)
 		{
 			im.IdleOnTimeout = toggleIdleOnTimeout.Checked;
 			Draw();
 		}
 
-		private void inputTimeout_ValueChanged(object sender, EventArgs e)
+		void inputTimeout_ValueChanged(object sender, EventArgs e)
 		{
 			im.InputTimeout = (int)inputTimeout.Value;
 		}
 
-		#endregion
-
-		#region power plans
-
-		private void buttonRefreshPowerPlans_Click(object sender, EventArgs e)
+		void displayTimeout_ValueChanged(object sender, EventArgs e)
 		{
-			ppm.Refresh();
-			Draw();
+			ppm.DisplayTimeout = (uint)displayTimeout.Value;
 		}
 
-		private void checkBoxUserPowerPlans_CheckedChanged(object sender, EventArgs e)
+		void sleepTimeout_ValueChanged(object sender, EventArgs e)
 		{
-			ppm.Enabled = checkBoxUserPowerPlans.Checked;
-			pmm.Enabled = !ppm.Enabled;
-			Draw();
+			ppm.SleepTimeout = (uint)sleepTimeout.Value;
 		}
 
-		private void comboIdlePP_SelectedIndexChanged(object sender, EventArgs e)
+		void hibernateTimeout_ValueChanged(object sender, EventArgs e)
 		{
-			string selected = (string)comboIdlePP.SelectedItem;
 
-			// associate PowerPlan with status
-			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.idle);
-		}
-
-		private void comboBalancedPP_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			string selected = (string)comboBalancedPP.SelectedItem;
-
-			// associate PowerPlan with status
-			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.balanced);
-		}
-
-		private void comboPerfPP_SelectedIndexChanged(object sender, EventArgs e)
-		{
-			string selected = (string)comboPerfPP.SelectedItem;
-			
-			// associate PowerPlan with status
-			ppm.AssociatePowerPlanWithStatus(selected, IdleManager.TargetStatus.performance);
 		}
 
 		#endregion
 
 		#region power modes
 
-		private void buttonRefreshPowerModes_Click(object sender, EventArgs e)
+		void buttonRefreshPowerModes_Click(object sender, EventArgs e)
 		{
 			Draw();
 		}
 
-		private void checkBoxUsePowerModes_CheckedChanged(object sender, EventArgs e)
-		{
-			pmm.Enabled = checkBoxUsePowerModes.Checked;
-			ppm.Enabled = !pmm.Enabled;
-			Draw();
-		}
-
-		private void button1_Click(object sender, EventArgs e)
+		void button1_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyBatterySaverPowerMode();
 			Draw();
 		}
 
-		private void button2_Click(object sender, EventArgs e)
+		void button2_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyBalancedPowerMode();
 			Draw();
 		}
 
-		private void buttonApplyPerformanceMode_Click(object sender, EventArgs e)
+		void buttonApplyPerformanceMode_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyPerformancePowerMode();
 			Draw();
 		}
 
-		private void button3_Click(object sender, EventArgs e)
+		void button3_Click(object sender, EventArgs e)
 		{
 			Application.Exit();
 		}
@@ -315,24 +261,30 @@ namespace PowerPlanManager
 
 		#endregion
 
-		private void buttonResetForced_Click(object sender, EventArgs e)
+		void buttonResetForced_Click(object sender, EventArgs e)
 		{
 			im.ResetForced();
+			Draw();
 		}
 
-		private void buttonForceIdle_Click(object sender, EventArgs e)
+		void buttonForceIdle_Click(object sender, EventArgs e)
 		{
-			im.ForceStatus(IdleManager.TargetStatus.idle);
+			im.ForceMode(PowerModes.idle);
+			Draw();
 		}
 
-		private void buttonForceBalanced_Click(object sender, EventArgs e)
+		void buttonForceBalanced_Click(object sender, EventArgs e)
 		{
-			im.ForceStatus(IdleManager.TargetStatus.balanced);
+			im.ForceMode(PowerModes.balanced);
+			Draw();
 		}
 
-		private void buttonForcePerformance_Click(object sender, EventArgs e)
+		void buttonForcePerformance_Click(object sender, EventArgs e)
 		{
-			im.ForceStatus(IdleManager.TargetStatus.performance);
+			im.ForceMode(PowerModes.performance);
+			Draw();
 		}
+
+		
 	}
 }

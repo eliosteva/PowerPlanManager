@@ -12,7 +12,7 @@ namespace PowerPlanManager
 	{
 
 		// https://stackoverflow.com/questions/56220823/retrieve-state-of-windows-10-power-mode-slider
-
+		// https://old.reddit.com/r/ZephyrusG14/comments/gho535/important_update_to_properly_disable_boosting/
 
 		/// <summary>
 		///  The main entry point for the application.
@@ -26,8 +26,22 @@ namespace PowerPlanManager
 			
 			Debug.Log(" ====================== started");
 
-			// ask to install if not installed
 			SelfInstaller si = new SelfInstaller();
+			DataManager dm = new DataManager(si);
+			PowerModeManager pmm = new PowerModeManager(dm);
+			PowerPlanManager ppm = new PowerPlanManager(dm);
+			if (!ppm.IsInstalled())
+			{
+				if (ppm.AskToInstall())
+				{
+					ppm.Install();
+				}
+				else
+				{
+					return;
+				}
+			}
+
 #if !DEBUG
 			if (!si.IsInstalled() && si.AskToInstall())
 			{
@@ -37,26 +51,18 @@ namespace PowerPlanManager
 			}
 #endif
 
-			// init data
-			DataManager dm = new DataManager(si);
-
-			// init power plans
-			PowerPlanManager ppm = new PowerPlanManager(dm);
-			PowerModeManager pmm = new PowerModeManager(dm);
-
 			// init idle
 			IdleManager im = new IdleManager(dm, ppm, pmm);
 
 			// start tray icon
 			ControlContainer container = new ControlContainer();
-			TrayIconManager nm = new TrayIconManager(si, container, ppm, pmm, im , dm);
-//#if DEBUG
-//			nm.ShowForm();
-//#endif
+			TrayIconManager nm = new TrayIconManager(si, container, ppm, pmm, im, dm);
+#if DEBUG
+			nm.ShowForm();
+#endif
 
 			// run message pump
 			Application.Run();
-			
 		}
 
 	}

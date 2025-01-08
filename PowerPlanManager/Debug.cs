@@ -7,9 +7,9 @@ namespace PowerPlanManager
 	class Debug
 	{
 
-		private const string file = "PowerPlanManager.log";
+		const string file = "PowerPlanManager.log";
 
-		private static string Now
+		static string Now
 		{
 			get
 			{
@@ -54,7 +54,7 @@ namespace PowerPlanManager
 			Write(new string[] { message });
 		}
 
-		private static void Write(string[] lines)
+		static void Write(string[] lines)
 		{
 			try
 			{

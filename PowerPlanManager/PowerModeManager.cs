@@ -10,28 +10,14 @@ namespace PowerPlanManager
 	internal class PowerModeManager
 	{
 
-
-
 		internal Action PowerModeChangedEvent;
 
 		DataManager dm;
-		bool enabled = true;
-
-		internal bool Enabled
-		{
-			get => enabled;
-			set
-			{
-				enabled = value;
-				dm.SetPref("pmm_enabled", enabled.ToString());
-			}
-		}
-
+		
 		internal PowerModeManager(DataManager dm)
 		{
 			this.dm = dm;
 
-			enabled = dm.GetPref<bool>("pmm_enabled", enabled);
 		}
 
 
@@ -65,8 +51,6 @@ namespace PowerPlanManager
 
 		void ApplyPowerMode(Guid powerMode)
 		{
-			if (!enabled) return;
-
 			uint result = PowerSetActiveOverlayScheme(powerMode);
 
 			if (result == 0)
@@ -116,7 +100,7 @@ namespace PowerPlanManager
 		/// <param name="EffectiveOverlayPolicyGuid">A pointer to a GUID structure.</param>
 		/// <returns>Returns zero if the call was successful, and a nonzero value if the call failed.</returns>
 		[DllImportAttribute("powrprof.dll", EntryPoint = "PowerGetEffectiveOverlayScheme")]
-		private static extern uint PowerGetEffectiveOverlayScheme(out Guid EffectiveOverlayPolicyGuid);
+		static extern uint PowerGetEffectiveOverlayScheme(out Guid EffectiveOverlayPolicyGuid);
 
 		/// <summary>
 		/// Sets the active power overlay power scheme.
@@ -124,7 +108,7 @@ namespace PowerPlanManager
 		/// <param name="OverlaySchemeGuid">The identifier of the overlay power scheme.</param>
 		/// <returns>Returns zero if the call was successful, and a nonzero value if the call failed.</returns>
 		[DllImportAttribute("powrprof.dll", EntryPoint = "PowerSetActiveOverlayScheme")]
-		private static extern uint PowerSetActiveOverlayScheme(Guid OverlaySchemeGuid);
+		static extern uint PowerSetActiveOverlayScheme(Guid OverlaySchemeGuid);
 
 	}
 }

@@ -96,6 +96,5 @@ namespace PowerPlanManager
 			if (!Directory.Exists(si.AppDataDirPath)) Directory.CreateDirectory(si.AppDataDirPath);
 			File.WriteAllText(dataFilePath, s);
 		}
-
 	}
 }

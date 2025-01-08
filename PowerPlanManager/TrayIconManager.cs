@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Forms;
+using static PowerPlanManager.PowerPlanManager;
 
 namespace PowerPlanManager
 {
@@ -64,26 +65,26 @@ namespace PowerPlanManager
 			trayIcon.MouseDoubleClick += OnDoubleClick;
 
 			// register with idle manager events
-			im.ChangedStatusEvent += OnChangedStatus;
+			im.ChangedModeEvent += OnChangedEvent;
 			contextMenuStrip.ResumeLayout(false);
 
 			// show icon
-			OnChangedStatus(im.CurrentStatus);
+			OnChangedEvent(im.CurrentMode);
 		}
 
-		void OnChangedStatus(IdleManager.TargetStatus status)
+		void OnChangedEvent(PowerModes status)
 		{
 			try
 			{
 				switch (status)
 				{
-					case IdleManager.TargetStatus.idle:
+					case PowerModes.idle:
 						trayIcon.Icon = Resources.idle;
 						break;
-					case IdleManager.TargetStatus.balanced:
+					case PowerModes.balanced:
 						trayIcon.Icon = Resources.balanced;
 						break;
-					case IdleManager.TargetStatus.performance:
+					case PowerModes.performance:
 						trayIcon.Icon = Resources.performance;
 						break;
 				}
@@ -141,7 +142,6 @@ namespace PowerPlanManager
 			Debug.Log("showing form");
 			form.Show();
 		}
-
 
 	}
 }

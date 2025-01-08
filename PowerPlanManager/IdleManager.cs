@@ -8,15 +8,12 @@ using System.Security.AccessControl;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using static PowerPlanManager.PowerPlanManager;
 
 namespace PowerPlanManager
 {
 	internal class IdleManager
 	{
-
-
-
-
 
 		bool idleOnScreensaver = true;
 		public bool IdleOnScreensaver
@@ -180,7 +177,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		public Action<TargetStatus> ChangedStatusEvent;
+		public Action<PowerModes> ChangedModeEvent;
 
 
 		BackgroundWorker bw;
@@ -271,18 +268,11 @@ namespace PowerPlanManager
 			close = true;
 		}
 
-		
 
-		internal enum TargetStatus
-		{
-			idle,
-			balanced,
-			performance,
-		}
 
-		TargetStatus currentStatus = TargetStatus.balanced;
-		internal TargetStatus CurrentStatus => currentStatus;
-		internal string CurrentStatusCause = "";
+		PowerModes currentMode = PowerModes.balanced;
+		internal PowerModes CurrentMode => currentMode;
+		internal string CurrentModeReason = "";
 		bool forced = false;
 
 		void Poll()
@@ -311,7 +301,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("performance process is running: " + name);
 #endif
-							GoToStatus(TargetStatus.performance, "process running (" + name +  ")");
+							GoToMode(PowerModes.performance, "process running (" + name +  ")");
 							return;
 						}
 					}
@@ -327,7 +317,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("balanced process is running: " + name);
 #endif
-							GoToStatus(TargetStatus.balanced, "process running (" + name + ")");
+							GoToMode(PowerModes.balanced, "process running (" + name + ")");
 							return;
 						}
 					}
@@ -340,12 +330,12 @@ namespace PowerPlanManager
 					if (idleTime.TotalSeconds >= inputTimeout)
 					{
 						// enter idle
-						if (currentStatus != TargetStatus.idle)
+						if (currentMode != PowerModes.idle)
 						{
 #if DEBUG
 							Debug.Log("entering idle due to user input timeout");
 #endif
-							GoToStatus(TargetStatus.idle, "user input timeout");
+							GoToMode(PowerModes.idle, "user input timeout");
 						}
 						return;
 					}
@@ -357,23 +347,23 @@ namespace PowerPlanManager
 					if (GetScreenSaverRunning())
 					{
 						// enter idle
-						if (currentStatus != TargetStatus.idle)
+						if (currentMode != PowerModes.idle)
 						{
 #if DEBUG
 							Debug.Log("entering idle due to screen saver running");
 #endif
-							GoToStatus(TargetStatus.idle, "screen saver running");
+							GoToMode(PowerModes.idle, "screen saver running");
 						}
 						return;
 					}
 				}
 
-				if (currentStatus != TargetStatus.balanced)
+				if (currentMode != PowerModes.balanced)
 				{
 #if DEBUG
 					Debug.Log("exiting idle due to user input");
 #endif
-					GoToStatus(TargetStatus.balanced, "user input detected");
+					GoToMode(PowerModes.balanced, "user input detected");
 				}
 			}
 			catch (Exception ex)
@@ -382,37 +372,18 @@ namespace PowerPlanManager
 			}
 		}
 
-		void GoToStatus(TargetStatus status, string cause)
+		void GoToMode(PowerModes mode, string cause)
 		{
-			CurrentStatusCause = cause;
+			CurrentModeReason = cause;
 
-			if (currentStatus == status) return;
+			if (currentMode == mode) return;
 
-			currentStatus = status;
+			currentMode = mode;
 
-			switch (status)
-			{
-				case TargetStatus.idle:
-					Debug.Log("applying idle");
-					ppm.ApplyPowerPlanForStatus(currentStatus);
-					pmm.ApplyBatterySaverPowerMode();
-					ChangedStatusEvent?.Invoke(currentStatus);
-					break;
-
-				case TargetStatus.balanced:
-					Debug.Log("applying balanced");
-					ppm.ApplyPowerPlanForStatus(currentStatus);
-					pmm.ApplyBalancedPowerMode();
-					ChangedStatusEvent?.Invoke(currentStatus);
-					break;
-
-				case TargetStatus.performance:
-					Debug.Log("applying performance");
-					ppm.ApplyPowerPlanForStatus(currentStatus);
-					pmm.ApplyBalancedPowerMode();
-					ChangedStatusEvent?.Invoke(currentStatus);
-					break;
-			}
+			Debug.Log("applying power mode: " + mode);
+			ppm.ApplyPowerMode(mode);
+			//pmm.ApplyBatterySaverPowerMode();
+			ChangedModeEvent?.Invoke(currentMode);
 		}
 
 		bool IsProcessRunning(string name)
@@ -421,15 +392,16 @@ namespace PowerPlanManager
 			return pname.Length != 0;
 		}
 
-		internal void ForceStatus(TargetStatus status)
+		internal void ForceMode(PowerModes mode)
 		{
 			forced = true;
-			GoToStatus(status, "forced");
+			GoToMode(mode, "forced");
 		}
 
 		internal void ResetForced()
 		{
 			forced = false;
+			Poll();
 		}
 
 		#region idle timer
@@ -488,5 +460,6 @@ namespace PowerPlanManager
 		}
 
 		#endregion
+
 	}
 }

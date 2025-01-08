@@ -177,21 +177,21 @@ namespace PowerPlanManager
 
 				// launch via CMD
 				Process myProcess = Process.Start(new ProcessStartInfo { Arguments = "/C " + targetExePath, FileName = "cmd", WindowStyle = ProcessWindowStyle.Hidden });
+		
 				
-				/*
-				// start other copy with new working dir
-				Debug.Log("starting new copy");
-				ProcessStartInfo psi = new ProcessStartInfo();
-				psi.UseShellExecute = true;
-				psi.WorkingDirectory = targetAppDirPath;
-				psi.FileName = targetExePath;
-				Process myProcess = Process.Start(psi);
-				//if (myProcess.ExitCode != 0)
-				//{
-				//	Debug.Log(myProcess.ExitCode.ToString());
-				//	throw new Exception();
-				//}
-				*/
+				//// start other copy with new working dir
+				//Debug.Log("starting new copy");
+				//ProcessStartInfo psi = new ProcessStartInfo();
+				//psi.UseShellExecute = true;
+				//psi.WorkingDirectory = targetAppDirPath;
+				//psi.FileName = targetExePath;
+				//Process myProcess = Process.Start(psi);
+				////if (myProcess.ExitCode != 0)
+				////{
+				////	Debug.Log(myProcess.ExitCode.ToString());
+				////	throw new Exception();
+				////}
+				
 			}
 			catch (Exception ex)
 			{
