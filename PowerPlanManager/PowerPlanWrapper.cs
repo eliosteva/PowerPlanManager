@@ -18,6 +18,9 @@ namespace PowerPlanManager
 
 		#region DLL Imports
 
+		[DllImport("PowrProf.dll", CharSet = CharSet.Auto, ExactSpelling = true)]
+		public static extern bool SetSuspendState(bool hiberate, bool forceCritical, bool disableWakeEvent);
+
 		[DllImport("powrprof.dll")]
 		private static extern uint PowerEnumerate(
 			[In, Optional] IntPtr RootPowerKey,

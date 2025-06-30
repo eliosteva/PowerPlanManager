@@ -12,6 +12,8 @@ using System.Xml.Serialization;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.ComponentModel;
+using static PowerPlanManager.IdleManager;
+using System.IO.Pipes;
 
 
 namespace PowerPlanManager
@@ -19,13 +21,6 @@ namespace PowerPlanManager
 
 	internal class PowerPlanManager
 	{
-		internal enum PowerModes
-		{
-			idle = 0,
-			balanced = 1,
-			performance = 2,
-		}
-
 		enum ProcessorBoostModes
 		{
 			disabled = 0, // off (good for cool device)
@@ -37,12 +32,12 @@ namespace PowerPlanManager
 			efficientAggressiveAtGuaranteed = 6, // Always select the highest possible target frequency above guaranteed frequency if hardware supports doing so efficiently.
 		}
 
-		class PowerPlan
+		class ManagedPowerPlan
 		{
 			public Guid guid;
 			public string name;
 
-			internal PowerPlan(Guid guid, string name)
+			internal ManagedPowerPlan(Guid guid, string name)
 			{
 				this.guid = guid;
 				this.name = name;
@@ -54,23 +49,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		const string PowerPlanGuid_Balanced = "381b4222-f694-41f0-9685-ff5bb260df2e";
-		const string PowerPlanName_Balanced = "Balanced";
-		const string PowerPlanName_PPM_PowerSaver = "PPM_PowerSaver";
-		const string PowerPlanName_PPM_Balanced = "PPM_Balanced";
-		const string PowerPlanName_PPM_Performance = "PPM_Performance";
-
-		internal Action PowerPlanAppliedEvent;
-
-		internal bool Enabled
-		{
-			get => enabled;
-			set
-			{
-				enabled = value;
-				dm.SetPref("ppm_enabled", enabled.ToString());
-			}
-		}
+		#region properties
 
 		internal uint DisplayTimeout
 		{
@@ -117,44 +96,67 @@ namespace PowerPlanManager
 			}
 		}
 
+		#endregion
+
+		#region fields
+
+		//Balanced: 381b4222-f694-41f0-9685-ff5bb260df2e
+		//High performance: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
+		//Power saver: a1841308-3541-4fab-bc81-f71556f20b4a
+		const string PowerPlanGuid_Balanced = "381b4222-f694-41f0-9685-ff5bb260df2e";
+		const string PowerPlanName_Balanced = "Balanced";
+		const string PowerPlanName_PPM_PowerSaver = "PPM_PowerSaver";
+		const string PowerPlanName_PPM_Balanced = "PPM_Balanced";
+		const string PowerPlanName_PPM_Performance = "PPM_Performance";
+
 		DataManager dm;
-		bool enabled = false;
-		PowerPlan defaultPlanBalanced = null;
-		PowerPlan customPlanPowerSaver = null;
-		PowerPlan customPlanBalanced = null;
-		PowerPlan customPlanPerformance = null;
+		ManagedPowerPlan defaultPlanBalanced = null;
+		ManagedPowerPlan managedPlanPowerSaver = null;
+		ManagedPowerPlan managedPlanBalanced = null;
+		ManagedPowerPlan managedPlanPerformance = null;
+		Dictionary<string, ManagedPowerPlan> otherPlans = new Dictionary<string, ManagedPowerPlan>();
+
+		ManagedPowerPlan selectedPlanPowerSaver = null;
+		ManagedPowerPlan selectedPlanBalanced = null;
+		ManagedPowerPlan selectedPlanPerformance = null;
 
 		uint displayTimeout = 15;
 		uint sleepTimeout = 60;
 		uint hibernateTimeout = 60;
 
-
+		#endregion
 
 		internal PowerPlanManager(DataManager dm)
 		{
 			this.dm = dm;
 			Debug.Log("initializing power plan manager");
 
-			enabled = dm.GetPref<bool>("ppm_enabled", enabled);
+			//enabled = dm.GetPref<bool>("ppm_enabled", enabled);
 			displayTimeout = dm.GetPref("displayTimeout", displayTimeout);
 			sleepTimeout = dm.GetPref("sleepTimeout", sleepTimeout);
 			hibernateTimeout = dm.GetPref("hibernateTimeout", hibernateTimeout);
 
+
 			Refresh();
+
+			// restore selected power plans
+			SelectPowerPlanForMode(dm.GetPref("selectedPowerPlanPowerSaver", PowerPlanName_PPM_PowerSaver), Mode.idle);
+			SelectPowerPlanForMode(dm.GetPref("selectedPowerPlanBalanced", PowerPlanName_PPM_Balanced), Mode.balanced);
+			SelectPowerPlanForMode(dm.GetPref("selectedPowerPlanPerformance", PowerPlanName_PPM_Performance), Mode.performance);
 		}
 
 		internal void Refresh()
 		{
-			void SetOrAddPowerPlan(ref PowerPlan reference, Guid guid, string name)
+			void SetOrAddPowerPlan(ref ManagedPowerPlan reference, Guid guid, string name)
 			{
-				if (reference == null) reference = new PowerPlan(guid, name);
+				if (reference == null) reference = new ManagedPowerPlan(guid, name);
 				else
 				{
 					reference.guid = guid;
 				}
 			}
 
-			void ApplyPowerPlanSettings(PowerPlan pp, ProcessorBoostModes boostMode, uint screenTimeout, uint sleepTimeout, uint hibernateTimeout, uint maxProcThrottle)
+			void ApplyPowerPlanSettings(ManagedPowerPlan pp, ProcessorBoostModes boostMode, uint screenTimeout, uint sleepTimeout, uint hibernateTimeout, uint maxProcThrottle)
 			{
 				// apply ProcessorBoostModes
 				PowerPlanWrapper.SetPlanSetting(pp.guid, SettingSubgroup.PROCESSOR_SETTINGS_SUBGROUP, Setting.PERFBOOSTMODE, PowerMode.DC, 0);
@@ -176,41 +178,45 @@ namespace PowerPlanManager
 				PowerPlanWrapper.SetPlanSetting(pp.guid, SettingSubgroup.PROCESSOR_SETTINGS_SUBGROUP, Setting.PROCTHROTTLEMAX, PowerMode.AC, maxProcThrottle);
 			}
 
-			var plans = PowerPlanWrapper.ListPlans();
+			List<Guid> plans = PowerPlanWrapper.ListPlans();
 			foreach(var plan in plans)
 			{
 				string name = PowerPlanWrapper.GetPlanName(plan);
 
+				// match or create power plans with ManagedPowerPlan
 				if (plan.Equals(PowerPlanGuid_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
 				else if (name.Equals(PowerPlanName_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
-				else if (name.Equals(PowerPlanName_PPM_PowerSaver)) SetOrAddPowerPlan(ref customPlanPowerSaver, plan, PowerPlanName_PPM_PowerSaver);
-				else if (name.Equals(PowerPlanName_PPM_Balanced)) SetOrAddPowerPlan(ref customPlanBalanced, plan, PowerPlanName_PPM_Balanced);
-				else if (name.Equals(PowerPlanName_PPM_Performance)) SetOrAddPowerPlan(ref customPlanPerformance, plan, PowerPlanName_PPM_Performance);
+				else if (name.Equals(PowerPlanName_PPM_PowerSaver)) SetOrAddPowerPlan(ref managedPlanPowerSaver, plan, PowerPlanName_PPM_PowerSaver);
+				else if (name.Equals(PowerPlanName_PPM_Balanced)) SetOrAddPowerPlan(ref managedPlanBalanced, plan, PowerPlanName_PPM_Balanced);
+				else if (name.Equals(PowerPlanName_PPM_Performance)) SetOrAddPowerPlan(ref managedPlanPerformance, plan, PowerPlanName_PPM_Performance);
+
+				else
+				{
+					if (!otherPlans.ContainsKey(name))
+					{
+						ManagedPowerPlan otherPlan = null;
+						SetOrAddPowerPlan(ref otherPlan, plan, name);
+						otherPlans.Add(name, otherPlan);
+					}
+				}
 			}
 
-			if (customPlanPowerSaver != null) ApplyPowerPlanSettings(customPlanPowerSaver, ProcessorBoostModes.disabled, displayTimeout, sleepTimeout, hibernateTimeout, 50);
-			if (customPlanBalanced != null) ApplyPowerPlanSettings(customPlanBalanced, ProcessorBoostModes.disabled, displayTimeout, 0, 0, 100);
-			if (customPlanPerformance != null) ApplyPowerPlanSettings(customPlanPerformance, ProcessorBoostModes.enabled, 0, 0, 0, 100);
-
-			//Guid current = PowerPlanWrapper.GetActivePlan();
-
-			//if (customPlanBalanced != null)
-			//{
-			//	var res = PowerPlanWrapper.GetPlanSetting(customPlanPowerSaver.guid, SettingSubgroup.PROCESSOR_SETTINGS_SUBGROUP, Setting.PROCTHROTTLEMAX, PowerMode.AC);
-			//	Debug.Log(res.ToString());
-			//}
-
+			// apply default settings to managed plans if they exists
+			if (managedPlanPowerSaver != null) ApplyPowerPlanSettings(managedPlanPowerSaver, ProcessorBoostModes.disabled, displayTimeout, sleepTimeout, hibernateTimeout, 50);
+			if (managedPlanBalanced != null) ApplyPowerPlanSettings(managedPlanBalanced, ProcessorBoostModes.disabled, displayTimeout, 0, 0, 100);
+			if (managedPlanPerformance != null) ApplyPowerPlanSettings(managedPlanPerformance, ProcessorBoostModes.enabled, 0, 0, 0, 100);
 		}
 
 		internal bool IsInstalled()
 		{
 			Refresh();
 
-			return customPlanPowerSaver != null && customPlanBalanced != null && customPlanPerformance != null;
+			return managedPlanPowerSaver != null && managedPlanBalanced != null && managedPlanPerformance != null;
 		}
 
 		internal bool AskToInstall()
 		{
+			Debug.Log("asking to install");
 			DialogResult dr = MessageBox.Show("Custom power plans not installed. Install?", "", MessageBoxButtons.YesNo);
 			if (dr == System.Windows.Forms.DialogResult.Yes)
 			{
@@ -233,434 +239,150 @@ namespace PowerPlanManager
 
 			Debug.Log("installing custom power plans");
 			IntPtr RetrPointer = IntPtr.Zero;
-			if (customPlanPowerSaver == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_PowerSaver);
-			if (customPlanBalanced == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_Balanced);
-			if (customPlanPerformance == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_Performance);
+
+			// duplicate managed plans from default balanced
+			if (managedPlanPowerSaver == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_PowerSaver);
+			if (managedPlanBalanced == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_Balanced);
+			if (managedPlanPerformance == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PPM_Performance);
+
+			// refresh (and apply settings to managed plans)
 			Refresh();
+
+			// select managed plans
+			Debug.Log("selecting default installed power plans");
+			selectedPlanPowerSaver = managedPlanPowerSaver;
+			selectedPlanBalanced = managedPlanBalanced;
+			selectedPlanPerformance = managedPlanPerformance;
 		}
 
-		internal void ApplyPowerMode(PowerModes powerMode)
+		internal void ApplyPowerMode(Mode mode)
 		{
-			switch (powerMode)
+			Debug.Log("applying power mode " + mode);
+			switch (mode)
 			{
-				case PowerModes.idle: ApplyPowerPlan(customPlanPowerSaver); break;
-				case PowerModes.balanced: ApplyPowerPlan(customPlanBalanced); break;
-				case PowerModes.performance: ApplyPowerPlan(customPlanPerformance); break;
+				case Mode.idle: ApplyPowerPlan(selectedPlanPowerSaver); break;
+				case Mode.balanced: ApplyPowerPlan(selectedPlanBalanced); break;
+				case Mode.performance: ApplyPowerPlan(selectedPlanPerformance); break;
 			}
 		}
 
-
-
-		static void DuplicatePowerPlan(PowerPlan source, string name)
+		internal List<string> GetAllPowerPlansNames()
 		{
-			Guid result = new Guid();
-			IntPtr RetrPointer = IntPtr.Zero;
+			List<string> names = new List<string>();
 
+			void Add(ManagedPowerPlan managedPowerPlan)
+			{
+				if (managedPowerPlan != null && !names.Contains(managedPowerPlan.name)) names.Add(managedPowerPlan.name);
+			}
+
+			Add(defaultPlanBalanced);
+			Add(managedPlanPowerSaver);
+			Add(managedPlanBalanced);
+			Add(managedPlanPerformance);
+			foreach(var v in otherPlans)
+			{
+				Add(v.Value);
+			}
+
+			return names;
+		}
+
+		internal string GetSelectedPowerPlanNameForMode(Mode mode)
+		{
+			switch (mode)
+			{
+				case Mode.idle: return selectedPlanPowerSaver?.name;
+				case Mode.balanced: return selectedPlanBalanced?.name;
+				case Mode.performance: return selectedPlanPerformance?.name;
+				default: throw new Exception();
+			}
+		}
+
+		internal void SelectPowerPlanForMode(string name, Mode mode)
+		{
+			Debug.Log("selecting power plan with name " + name + " for mode " + mode);
+			var powerPlan = GetPowerPlanWithName(name);
+			if (powerPlan == null)
+			{
+				Debug.LogError("cannot select power plan with name " + name + " for mode " + mode);
+				return;
+			}
+
+			switch (mode)
+			{
+				case Mode.idle:
+					selectedPlanPowerSaver = powerPlan;
+					dm.SetPref("selectedPowerPlanPowerSaver", name);
+					break;
+				case Mode.balanced:
+					selectedPlanBalanced = powerPlan;
+					dm.SetPref("selectedPowerPlanBalanced", name);
+					break;
+				case Mode.performance:
+					selectedPlanPerformance = powerPlan;
+					dm.SetPref("selectedPowerPlanPerformance", name);
+					break;
+				default: throw new Exception();
+			}
+		}
+
+		ManagedPowerPlan GetPowerPlanWithName(string name)
+		{
+			if (name.Equals(PowerPlanName_Balanced) && defaultPlanBalanced != null) return defaultPlanBalanced;
+			else if (name.Equals(PowerPlanName_PPM_PowerSaver) && managedPlanPowerSaver != null) return managedPlanPowerSaver;
+			else if (name.Equals(PowerPlanName_PPM_Balanced) && managedPlanBalanced != null) return managedPlanBalanced;
+			else if (name.Equals(PowerPlanName_PPM_Performance) && managedPlanPerformance != null) return managedPlanPerformance;
+			else
+			{
+				if (otherPlans.ContainsKey(name)) return otherPlans[name];
+			}
+			return null;
+		}
+
+
+		static void DuplicatePowerPlan(ManagedPowerPlan source, string name)
+		{
 			// Attempt to duplicate the 'Balanced' Power Scheme.
 			Debug.Log("duplicating power plan: " + source);
 			Guid results = PowerPlanWrapper.DuplicatePlan(source.guid);
 
-			PowerPlanWrapper.SetPlanName(result, name);
-			PowerPlanWrapper.SetPlanDescription(result, "Custom PowerPlan managed by PPM");
+			PowerPlanWrapper.SetPlanName(results, name);
+			PowerPlanWrapper.SetPlanDescription(results, "Custom PowerPlan managed by PPM");
 		}
 
-		void ApplyPowerPlan(PowerPlan powerPlan)
+		void ApplyPowerPlan(ManagedPowerPlan plan)
 		{
-			if (!enabled) return;
+			//if (!enabled) return;
 
-			//// must have target
-			//if (targetPlan == null)
-			//{
-			//	Debug.LogWarning("cannot apply power plan: plan is null");
-			//	return;
-			//}
-
-			//// must be different
-			//if (currentPlan == targetPlan)
-			//{
-			//	Debug.LogWarning("cannot apply power plan: plan " + targetPlan.name + " is already active");
-			//	return;
-			//}
-
-			// apply
-			Debug.LogWarning("applying power plan: " + powerPlan.name);
-			PowerPlanWrapper.SetActivePlan(powerPlan.guid);
-
-			// check
-			//currentPlan = GetPowerPlanFromGuid(GetCurrentPowerPlan());
-			//if (currentPlan != targetPlan) Debug.LogError("applied plan " + targetPlan.name + " but current is " + currentPlan.name);
-
-			PowerPlanAppliedEvent?.Invoke();
-		}
-
-
-
-		/*
-		internal class PowerPlan
-		{
-			public uint index;
-			public Guid guid;
-			public string name;
-
-			public override string ToString()
+			// must have plan
+			if (plan == null)
 			{
-				return "[" + index + "] " + name + "(" + guid + ")";
-			}
-		}
-
-		#region extern
-
-		enum AccessFlags : uint
-		{
-			ACCESS_SCHEME = 16,
-			ACCESS_SUBGROUP = 17,
-			ACCESS_INDIVIDUAL_SETTING = 18
-		}
-
-		const uint ERROR_MORE_DATA = 234;
-
-		static Guid NO_SUBGROUP_GUID = new Guid("fea3413e-7e05-4911-9a71-700331f1c294");
-		static Guid GUID_DISK_SUBGROUP = new Guid("0012ee47-9041-4b5d-9b77-535fba8b1442");
-		static Guid GUID_SYSTEM_BUTTON_SUBGROUP = new Guid("4f971e89-eebd-4455-a8de-9e59040e7347");
-		static Guid GUID_PROCESSOR_SETTINGS_SUBGROUP = new Guid("54533251-82be-4824-96c1-47b60b740d00");
-		static Guid GUID_VIDEO_SUBGROUP = new Guid("7516b95f-f776-4464-8c53-06167f40cc99");
-		static Guid GUID_BATTERY_SUBGROUP = new Guid("e73a048d-bf27-4f12-9731-8b2076e8891f");
-		static Guid GUID_SLEEP_SUBGROUP = new Guid("238C9FA8-0AAD-41ED-83F4-97BE242C8F20");
-		static Guid GUID_PCIEXPRESS_SETTINGS_SUBGROUP = new Guid("501a4d13-42af-4429-9fd1-a8218c268e20");
-
-		[DllImport("PowrProf.dll")]
-		static extern UInt32 PowerEnumerate(IntPtr RootPowerKey, IntPtr SchemeGuid, IntPtr SubGroupOfPowerSettingGuid, UInt32 AcessFlags, UInt32 Index, ref Guid Buffer, ref UInt32 BufferSize);
-
-		[DllImport("PowrProf.dll")]
-		static extern UInt32 PowerReadFriendlyName(IntPtr RootPowerKey, ref Guid SchemeGuid, IntPtr SubGroupOfPowerSettingGuid, IntPtr PowerSettingGuid, IntPtr Buffer, ref UInt32 BufferSize);
-
-		[DllImport("powrprof.dll")]
-		static extern UInt32 PowerGetActiveScheme(IntPtr UserRootPowerKey, ref IntPtr ActivePolicyGuid);
-
-		[DllImport("PowrProf.dll", CharSet = CharSet.Unicode)]
-		static extern UInt32 PowerSetActiveScheme(IntPtr RootPowerKey, [MarshalAs(UnmanagedType.LPStruct)] Guid SchemeGuid);
-
-		[DllImport("powrprof.dll", EntryPoint = "PowerDuplicateScheme", SetLastError = true)]
-		static extern UInt32 PowerDuplicateScheme(IntPtr RootPowerKey, ref Guid SrcSchemeGuid, ref IntPtr DstSchemeGuid);
-
-		[DllImport("powrprof.dll", CharSet = CharSet.Unicode)]
-		private static extern uint PowerWriteFriendlyName(
-			[In, Optional] IntPtr RootPowerKey,
-			[In] ref Guid SchemeGuid,
-			[In, Optional] IntPtr SubGroupOfPowerSettingsGuid,
-			[In, Optional] IntPtr PowerSettingGuid,
-			[In] string Buffer,
-			[In] UInt32 BufferSize
-		);
-
-		[DllImport("powrprof.dll", CharSet = CharSet.Unicode)]
-		private static extern uint PowerWriteDescription(
-			[In, Optional] IntPtr RootPowerKey,
-			[In] ref Guid SchemeGuid,
-			[In, Optional] IntPtr SubGroupOfPowerSettingsGuid,
-			[In, Optional] IntPtr PowerSettingGuid,
-			[In] string Buffer,
-			[In] UInt32 BufferSize
-		);
-
-		[DllImport("powrprof.dll")]
-		static extern uint PowerReadACValue( IntPtr RootPowerKey, IntPtr SchemeGuid, IntPtr SubGroupOfPowerSettingGuid, ref Guid PowerSettingGuid, ref int Type, ref IntPtr Buffer, ref uint BufferSize );
-
-		[DllImport("kernel32.dll")] 
-		static extern IntPtr LocalFree( IntPtr hMem );
-
-		#endregion
-
-		internal Action PowerPlanChangedEvent;
-
-		DataManager dm;
-		bool enabled = false;
-		Dictionary<IdleManager.TargetStatus, PowerPlan> statusPlans = new Dictionary<IdleManager.TargetStatus, PowerPlan>();
-		Dictionary<Guid, PowerPlan> availablePlans = new Dictionary<Guid, PowerPlan>();
-		PowerPlan currentPlan = null;
-		PowerPlan defaultPlanBalanced = null;
-		PowerPlan customPlanPowerSaver = null;
-		PowerPlan customPlanBalanced = null;
-		PowerPlan customPlanPerformance = null;
-
-		public IReadOnlyDictionary<IdleManager.TargetStatus, PowerPlan> StatusPlans => statusPlans;
-		public IReadOnlyDictionary<Guid, PowerPlan> AvailablePlans => availablePlans;
-		public PowerPlan CurrentPlan => currentPlan;
-
-		internal bool Enabled
-		{
-			get => enabled;
-			set
-			{
-				enabled = value;
-				dm.SetPref("ppm_enabled", enabled.ToString());
-			}
-		}
-
-		const string PowerPlanGuid_Balanced = "381b4222-f694-41f0-9685-ff5bb260df2e";
-		const string PowerPlanName_PowerSaver = "PPM_PowerSaver";
-		const string PowerPlanName_Balanced = "PPM_Balanced";
-		const string PowerPlanName_Performance = "PPM_Performance";
-
-		internal PowerPlanManager(DataManager dm)
-		{
-			this.dm = dm;
-			Debug.Log("initializing power plan manager");
-			Refresh();
-		}
-
-
-		internal bool IsInstalled()
-		{
-			Refresh();
-
-			return customPlanPowerSaver != null && customPlanBalanced != null && customPlanPerformance != null;
-		}
-
-		internal bool AskToInstall()
-		{
-			DialogResult dr = MessageBox.Show("Custom power plans not installed. Install?", "", MessageBoxButtons.YesNo);
-			if (dr == System.Windows.Forms.DialogResult.Yes)
-			{
-				return true;
-			}
-			else
-			{
-				return false;
-			}
-		}
-
-		internal void Install()
-		{
-			// must have balanced power plan
-			if (defaultPlanBalanced == null)
-			{
-				MessageBox.Show("Default Balanced PowerPlan not found", "");
-				return;
-			}
-
-			Debug.Log("installing custom power plans");
-			IntPtr RetrPointer = IntPtr.Zero;
-			if (customPlanPowerSaver == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_PowerSaver);
-			if (customPlanBalanced == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_Balanced);
-			if (customPlanPerformance == null) DuplicatePowerPlan(defaultPlanBalanced, PowerPlanName_Performance);
-			Refresh();
-		}
-
-
-
-
-		internal void Refresh()
-		{
-			availablePlans = GetAvailablePowerPlans();
-			currentPlan = GetPowerPlanFromGuid(GetCurrentPowerPlan());
-
-			foreach (var v in availablePlans)
-			{
-				if (v.Value.name.Equals(PowerPlanName_PowerSaver)) customPlanPowerSaver = v.Value;
-				if (v.Value.name.Equals(PowerPlanName_Balanced)) customPlanBalanced = v.Value;
-				if (v.Value.name.Equals(PowerPlanName_Performance)) customPlanPerformance = v.Value;
-				if (v.Value.guid.ToString().Equals(PowerPlanGuid_Balanced)) defaultPlanBalanced = v.Value;
-			}
-
-
-
-			// load from prefs
-			statusPlans.Clear();
-			statusPlans.Add(IdleManager.TargetStatus.idle, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.idle.ToString())));
-			statusPlans.Add(IdleManager.TargetStatus.balanced, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.balanced.ToString())));
-			statusPlans.Add(IdleManager.TargetStatus.performance, GetPowerPlanFromName(dm.GetPref(IdleManager.TargetStatus.performance.ToString())));
-			enabled = dm.GetPref<bool>("ppm_enabled", enabled);
-
-			
-		}
-
-		internal void ApplyPowerPlanForStatus(IdleManager.TargetStatus status)
-		{
-			if (!statusPlans.ContainsKey(status))
-			{
-				Debug.LogError("cannot apply PowerPlan: no PowerPlan associated with status " + status);
-				return;
-			}
-
-			// apply plan for status
-			ApplyPowerPlan(statusPlans[status]);
-		}
-
-		internal PowerPlan GetPowerPlanFromName(string s)
-		{
-			foreach (var v in availablePlans)
-			{
-				if (v.Value.name.Equals(s)) return v.Value;
-			}
-
-			return null;
-		}
-
-		internal PowerPlan GetPowerPlanFromGuid(Guid guid)
-		{
-			if (availablePlans.ContainsKey(guid)) return availablePlans[guid];
-			return null;
-		}
-
-		internal void AssociatePowerPlanWithStatus(string name, IdleManager.TargetStatus status)
-		{
-			PowerPlan pp = GetPowerPlanFromName(name);
-			if (pp != null)
-			{
-				if (!statusPlans.ContainsKey(status))
-				{
-					Debug.Log("associating PowerPlan " + name + " to status " + status);
-					statusPlans.Add(status, pp);
-
-					// save pref
-					dm.SetPref(status.ToString(), name);
-				}
-				else
-				{
-					// only if changed
-					if (statusPlans[status] != pp)
-					{
-						Debug.Log("associating PowerPlan " + name + " to status " + status);
-						statusPlans[status] = pp;
-
-						// save pref
-						dm.SetPref(status.ToString(), name);
-					}
-				}
-			}
-		}
-
-
-		void ApplyPowerPlan(PowerPlan targetPlan)
-		{
-			if (!enabled) return;
-
-			// must have target
-			if (targetPlan == null)
-			{
-				Debug.LogWarning("cannot apply power plan: plan is null");
+				Debug.LogError("cannot apply power plan: target plan is null");
 				return;
 			}
 
 			// must be different
-			if (currentPlan == targetPlan)
+			if (PowerPlanWrapper.GetActivePlan() == plan.guid)
 			{
-				Debug.LogWarning("cannot apply power plan: plan " + targetPlan.name + " is already active");
+				//Debug.LogWarning("cannot apply power plan: plan " + plan.name + " is already active");
 				return;
 			}
 
 			// apply
-			Debug.LogWarning("applying power plan: " + targetPlan.name);
-			SetActiveScheme(targetPlan.guid);
+			Debug.LogWarning("applying power plan: " + plan.name);
+			PowerPlanWrapper.SetActivePlan(plan.guid);
 
 			// check
-			currentPlan = GetPowerPlanFromGuid(GetCurrentPowerPlan());
-			if (currentPlan != targetPlan) Debug.LogError("applied plan " + targetPlan.name + " but current is " + currentPlan.name);
-
-			PowerPlanChangedEvent?.Invoke();
-		}
-
-
-		static string ReadFriendlyName(Guid schemeGuid)
-		{
-			uint sizeName = 1024;
-			IntPtr pSizeName = Marshal.AllocHGlobal((int)sizeName);
-
-			string friendlyName = "";
-
-			try
+			if (PowerPlanWrapper.GetActivePlan() != plan.guid)
 			{
-				PowerReadFriendlyName(IntPtr.Zero, ref schemeGuid, IntPtr.Zero, IntPtr.Zero, pSizeName, ref sizeName);
-				friendlyName = Marshal.PtrToStringUni(pSizeName);
+				Debug.LogError("applied plan " + plan.guid + " but current is " + PowerPlanWrapper.GetActivePlan());
 			}
-			finally
-			{
-				Marshal.FreeHGlobal(pSizeName);
-			}
-
-			return friendlyName;
 		}
-
-		static Dictionary<Guid, PowerPlan> GetAvailablePowerPlans()
-		{
-			Dictionary<Guid, PowerPlan> dic = new Dictionary<Guid, PowerPlan>();
-			{
-				Guid schemeGuid = Guid.Empty;
-				uint sizeSchemeGuid = (uint)Marshal.SizeOf(typeof(Guid));
-				uint schemeIndex = 0;
-				while (PowerEnumerate(IntPtr.Zero, IntPtr.Zero, IntPtr.Zero, (uint)AccessFlags.ACCESS_SCHEME, schemeIndex, ref schemeGuid, ref sizeSchemeGuid) == 0)
-				{
-					PowerPlan pp = new PowerPlan();
-					pp.index = schemeIndex;
-					pp.guid = schemeGuid;
-					pp.name = ReadFriendlyName(schemeGuid);
-					Debug.Log("power plan found: " + pp);
-
-					dic.Add(schemeGuid, pp);
-
-					schemeIndex++;
-				}
-			}
-			return dic;
-		}
-
-		static Guid GetCurrentPowerPlan()
-		{
-			IntPtr ActiveScheme = IntPtr.Zero;
-			PowerGetActiveScheme(IntPtr.Zero, ref ActiveScheme);
-			Guid ActivePolicy = Marshal.PtrToStructure<Guid>(ActiveScheme);
-			return ActivePolicy;
-		}
-
-		static void SetActiveScheme(Guid guid)
-		{
-			PowerSetActiveScheme(IntPtr.Zero, guid);
-		}
-
-		static void DuplicatePowerPlan(PowerPlan source, string name)
-		{
-			Guid result = new Guid();
-			IntPtr RetrPointer = IntPtr.Zero;
-
-			// Attempt to duplicate the 'Balanced' Power Scheme.
-			Debug.Log("duplicating power plan: " + source);
-			PowerDuplicateScheme(IntPtr.Zero, ref source.guid, ref RetrPointer);
-
-			if (RetrPointer != IntPtr.Zero)
-			{
-				// Function returns a pointer-to-memory, marshal back to our Guid variable.
-				result = (Guid)Marshal.PtrToStructure(RetrPointer, typeof(Guid));
-
-				// set name
-				name += char.MinValue; // Null-terminate the name string.
-				uint bufferSize = (uint)Encoding.Unicode.GetByteCount(name);
-				var res = PowerWriteFriendlyName(IntPtr.Zero, ref result, IntPtr.Zero, IntPtr.Zero, name, bufferSize);
-				if (res != 0) Debug.LogError("failed to set plan name: error code is " + res);
-
-				// set description
-				string description = "Custom PowerPlan managed by PPM" + char.MinValue;
-				bufferSize = (uint)Encoding.Unicode.GetByteCount(description);
-				res = PowerWriteDescription(IntPtr.Zero, ref result, IntPtr.Zero, IntPtr.Zero, description, bufferSize);
-				if (res != 0) Debug.LogError("failed to set plan description: error code is " + res);
-			}
-			else Debug.LogError("failed to duplicate plan");
-
-		}
-		
-		*/
-
-
-
 
 
 
 
 		/*
-
-		//Balanced: 381b4222-f694-41f0-9685-ff5bb260df2e
-		//High performance: 8c5e7fda-e8bf-4a96-9a85-a6e23a8c635c
-		//Power saver: a1841308-3541-4fab-bc81-f71556f20b4a
 
 		internal enum Mode
 		{
@@ -668,8 +390,6 @@ namespace PowerPlanManager
 			Balanced,
 			Performance,
 		}
-
-		
 
 		void SetModeViaCmd(Mode mode)
 		{
@@ -711,17 +431,6 @@ namespace PowerPlanManager
 
 			process.WaitForExit();
 
-		}
-
-
-		internal void ApplyIdlePowerPlan()
-		{
-			SetModeViaCmd(Mode.Battery);
-		}
-
-		internal void ApplyDefaultPowerPlan()
-		{
-			SetModeViaCmd(Mode.Balanced);
 		}
 		*/
 	}

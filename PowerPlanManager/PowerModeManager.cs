@@ -10,7 +10,16 @@ namespace PowerPlanManager
 	internal class PowerModeManager
 	{
 
-		internal Action PowerModeChangedEvent;
+		internal Action PowerModeAppliedEvent;
+
+		internal bool IsCurrentModeBalanced
+		{
+			get
+			{
+				PowerGetEffectiveOverlayScheme(out Guid guid);
+				return guid == PowerMode.BetterPerformance;
+			}
+		}
 
 		DataManager dm;
 		
@@ -62,7 +71,7 @@ namespace PowerPlanManager
 				Debug.LogError("failed to set power mode to: " + powerMode);
 			}
 
-			PowerModeChangedEvent?.Invoke();
+			PowerModeAppliedEvent?.Invoke();
 		}
 
 

@@ -44,7 +44,7 @@ namespace PowerPlanManager
 
 		internal bool IsAutostarting()
 		{
-			Debug.Log("checking autostart registry key");
+			//Debug.Log("checking autostart registry key");
 			RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
 			if (rk != null)
 			{

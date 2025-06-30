@@ -14,6 +14,12 @@ namespace PowerPlanManager
 		// https://stackoverflow.com/questions/56220823/retrieve-state-of-windows-10-power-mode-slider
 		// https://old.reddit.com/r/ZephyrusG14/comments/gho535/important_update_to_properly_disable_boosting/
 
+		// https://learn.microsoft.com/en-us/windows-hardware/design/device-experiences/display--sleep--and-hibernate-idle-timers
+
+		// query: powercfg /Q
+
+		// https://www.codeproject.com/Tips/480049/Shut-Down-Restart-Log-off-Lock-Hibernate-or-Sleep
+
 		/// <summary>
 		///  The main entry point for the application.
 		/// </summary>
@@ -35,10 +41,6 @@ namespace PowerPlanManager
 				if (ppm.AskToInstall())
 				{
 					ppm.Install();
-				}
-				else
-				{
-					return;
 				}
 			}
 
