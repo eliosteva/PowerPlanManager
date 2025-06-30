@@ -4,22 +4,22 @@ It is possible to assign running programs to automatically switch to Balanced or
 It will automatically switch to PowerSaver also if the system screensaver is running.
 It is now possible to skip installation of default PowerPlans and select custom ones.
 
-The default (now optional) PowerPlans if installed have the following values:
+The default (now optional) PowerPlans when installed have the following values:
 
 # PowerSaver
-- has HALF max CPU boost, to preserve battery.
+- has 50% max CPU frequency, to preserve battery.
 - screen timeout enabled.
 - sleep timeout enabled.
 - (optional) manual hybernate after a set timeout, bypassing windows hybrid standby.
 
 # Balanced
-- has NO CPU boost, to lower temperatures while maintaining reasonable performance.
+- has 100% max CPU frequency, but CPU boost disabled, to lower temperatures while maintaining reasonable performance.
 - screen timeout
 - NO sleep timeout
 - NO manual hybernate timeout.
 
 # Performance
-- has CPU boost enabled, for max performance.
+- has no limits on cpu frequency and CPU boost enabled, for max performance.
 - NO screen timeout
 - NO sleep timeout
 - NO manual hybernation timeout
