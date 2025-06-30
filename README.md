@@ -12,7 +12,7 @@ Battery, Temperature or Performance focus depending on user needs:
 - Balanced has NO CPU boost, to lower temperatures while maintaining reasonable performance.
 - Performance has CPU boost enabled, for max performance.
 
-Customizable undified screen, sleep and hybernate timeout values for the 3 power modes:
+Customizable unified screen, sleep and hybernate timeout values for the 3 power modes:
 - PowerSaver has screen, sleep, hibernate timeouts.
 - Balanced has screen timeout but sleep and hibernate are disabled.
 - Performance has no timeouts: the computer and monitor will stay on as long as this scheme is active.
