@@ -50,37 +50,84 @@ namespace PowerPlanManager
 			menuItemBrowse.Click += ShowFolder;
 			contextMenuStrip.Items.Add(menuItemBrowse);
 
-			// context menu item
-			ToolStripMenuItem menuItemForceDefault = new ToolStripMenuItem();
-			menuItemForceDefault.Size = new System.Drawing.Size(104, 48);
-			menuItemForceDefault.Name = "Reset";
-			menuItemForceDefault.Text = "Reset";
-			menuItemForceDefault.Click += ResetToDefault;
-			contextMenuStrip.Items.Add(menuItemForceDefault);
+			contextMenuStrip.Items.Add("-");
+			{
+				// context menu item
+				ToolStripMenuItem menuItemForceDefault = new ToolStripMenuItem();
+				menuItemForceDefault.Size = new System.Drawing.Size(104, 48);
+				menuItemForceDefault.Name = "Reset";
+				menuItemForceDefault.Text = "Reset";
+				menuItemForceDefault.Click += ResetToDefault;
+				contextMenuStrip.Items.Add(menuItemForceDefault);
 
-			// context menu item
-			ToolStripMenuItem menuItemForceIdle = new ToolStripMenuItem();
-			menuItemForceIdle.Size = new System.Drawing.Size(104, 48);
-			menuItemForceIdle.Name = "ForceIdle";
-			menuItemForceIdle.Text = "Force Idle";
-			menuItemForceIdle.Click += ForceIdle;
-			contextMenuStrip.Items.Add(menuItemForceIdle);
+				// context menu item
+				ToolStripMenuItem menuItemForceIdle = new ToolStripMenuItem();
+				menuItemForceIdle.Size = new System.Drawing.Size(104, 48);
+				menuItemForceIdle.Name = "ForceIdle";
+				menuItemForceIdle.Text = "Force Idle";
+				menuItemForceIdle.Click += ForceIdle;
+				contextMenuStrip.Items.Add(menuItemForceIdle);
 
-			// context menu item
-			ToolStripMenuItem menuItemForceBalanced = new ToolStripMenuItem();
-			menuItemForceBalanced.Size = new System.Drawing.Size(104, 48);
-			menuItemForceBalanced.Name = "ForceBalanced";
-			menuItemForceBalanced.Text = "Force Balanced";
-			menuItemForceBalanced.Click += ForceBalanced;
-			contextMenuStrip.Items.Add(menuItemForceBalanced);
+				// context menu item
+				ToolStripMenuItem menuItemForceBalanced = new ToolStripMenuItem();
+				menuItemForceBalanced.Size = new System.Drawing.Size(104, 48);
+				menuItemForceBalanced.Name = "ForceBalanced";
+				menuItemForceBalanced.Text = "Force Balanced";
+				menuItemForceBalanced.Click += ForceBalanced;
+				contextMenuStrip.Items.Add(menuItemForceBalanced);
 
+				// context menu item
+				ToolStripMenuItem menuItemForcePerformance = new ToolStripMenuItem();
+				menuItemForcePerformance.Size = new System.Drawing.Size(104, 48);
+				menuItemForcePerformance.Name = "ForcePerformance";
+				menuItemForcePerformance.Text = "Force Performance";
+				menuItemForcePerformance.Click += ForcePerformance;
+				contextMenuStrip.Items.Add(menuItemForcePerformance);
+			}
+			contextMenuStrip.Items.Add("-");
+
+			/*
 			// context menu item
-			ToolStripMenuItem menuItemForcePerformance = new ToolStripMenuItem();
-			menuItemForcePerformance.Size = new System.Drawing.Size(104, 48);
-			menuItemForcePerformance.Name = "ForcePerformance";
-			menuItemForcePerformance.Text = "Force Performance";
-			menuItemForcePerformance.Click += ForcePerformance;
-			contextMenuStrip.Items.Add(menuItemForcePerformance);
+			ToolStripMenuItem menuItemForce = new ToolStripMenuItem();
+			menuItemForce.Size = new System.Drawing.Size(104, 48);
+			menuItemForce.Name = "Force";
+			menuItemForce.Text = "Force";
+			//menuItemForce.Click += ShowFolder;
+			contextMenuStrip.Items.Add(menuItemForce);
+			{
+				// context menu item
+				ToolStripMenuItem menuItemForceDefault = new ToolStripMenuItem();
+				menuItemForceDefault.Size = new System.Drawing.Size(104, 48);
+				menuItemForceDefault.Name = "Reset";
+				menuItemForceDefault.Text = "Reset";
+				menuItemForceDefault.Click += ResetToDefault;
+				menuItemForce.DropDownItems.Add(menuItemForceDefault);
+
+				// context menu item
+				ToolStripMenuItem menuItemForceIdle = new ToolStripMenuItem();
+				menuItemForceIdle.Size = new System.Drawing.Size(104, 48);
+				menuItemForceIdle.Name = "Idle";
+				menuItemForceIdle.Text = "Idle";
+				menuItemForceIdle.Click += ForceIdle;
+				menuItemForce.DropDownItems.Add(menuItemForceIdle);
+
+				// context menu item
+				ToolStripMenuItem menuItemForceBalanced = new ToolStripMenuItem();
+				menuItemForceBalanced.Size = new System.Drawing.Size(104, 48);
+				menuItemForceBalanced.Name = "Balanced";
+				menuItemForceBalanced.Text = "Balanced";
+				menuItemForceBalanced.Click += ForceBalanced;
+				menuItemForce.DropDownItems.Add(menuItemForceBalanced);
+
+				// context menu item
+				ToolStripMenuItem menuItemForcePerformance = new ToolStripMenuItem();
+				menuItemForcePerformance.Size = new System.Drawing.Size(104, 48);
+				menuItemForcePerformance.Name = "Performance";
+				menuItemForcePerformance.Text = "Performance";
+				menuItemForcePerformance.Click += ForcePerformance;
+				menuItemForce.DropDownItems.Add(menuItemForcePerformance);
+			}
+			*/
 
 			// context menu item
 			ToolStripMenuItem menuItemExit = new ToolStripMenuItem();
@@ -110,13 +157,13 @@ namespace PowerPlanManager
 			{
 				switch (im.CurrentMode)
 				{
-					case Mode.idle:
+					case Status.idle:
 						trayIcon.Icon = Resources.idle;
 						break;
-					case Mode.balanced:
+					case Status.balanced:
 						trayIcon.Icon = Resources.balanced;
 						break;
-					case Mode.performance:
+					case Status.performance:
 						trayIcon.Icon = Resources.performance;
 						break;
 				}
@@ -149,17 +196,17 @@ namespace PowerPlanManager
 		
 		void ForceIdle(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.idle);
+			im.ForceStatus(Status.idle);
 		}
 		
 		void ForceBalanced(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.balanced);
+			im.ForceStatus(Status.balanced);
 		}
 		
 		void ForcePerformance(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.performance);
+			im.ForceStatus(Status.performance);
 		}
 
 		void ExitApp(object sender, EventArgs e)

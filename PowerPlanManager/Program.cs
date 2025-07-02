@@ -29,50 +29,30 @@ namespace PowerPlanManager
 			//Application.SetHighDpiMode(HighDpiMode.SystemAware);
 			Application.EnableVisualStyles();
 			Application.SetCompatibleTextRenderingDefault(true);
-			
+
+			Debug.Initialize();
 			Debug.Log(" ====================== started");
 
 			SelfInstaller si = new SelfInstaller();
 			DataManager dm = new DataManager(si);
 			PowerModeManager pmm = new PowerModeManager(dm);
 			PowerPlanManager ppm = new PowerPlanManager(dm);
-
+			bool showForm = false;
 #if DEBUG
-			//ppm.UninstallCustomPlans();
+			showForm = true;
 #endif
 
-			if (!ppm.HasManagedPlansInstalled())
+			// application must be installed
+			if (!si.Initialize())
 			{
-				Debug.Log("managed PowerPlans not installed");
-				if (!ppm.AskedToInstallManagedPlans())
-				{
-					Debug.Log("asking to install managed PowerPlans");
-					if (ppm.AskToInstallCustomPlans())
-					{
-						Debug.Log("installing managed PowerPlans");
-						ppm.InstallManagedPlans();
-					}
-					else Debug.Log("user refused managed PowerPlans installation");
-				}
-				else Debug.Log("already asked to install managed PowerPlans, will not ask again");
+				return;
 			}
-			else Debug.Log("managed PowerPlans already installed");
 
-#if !DEBUG
-			if (!si.IsInstalled())
+			// initialize power plans
+			if (!ppm.Initialize())
 			{
-				Debug.Log("application not started from install location, asking to install");
-				if (si.AskToInstall())
-				{
-					Debug.Log("installing application");
-					si.Install();
-					Application.Exit();
-					return;
-				}
-				else Debug.Log("user refused application installation");
+				showForm = true;
 			}
-			else Debug.Log("application is installed");
-#endif
 
 			// init idle
 			IdleManager im = new IdleManager(dm, ppm, pmm);
@@ -80,9 +60,8 @@ namespace PowerPlanManager
 			// start tray icon
 			ControlContainer container = new ControlContainer();
 			TrayIconManager nm = new TrayIconManager(si, container, ppm, pmm, im, dm);
-#if DEBUG
-			nm.ShowForm();
-#endif
+
+			if (showForm) nm.ShowForm();
 
 			// run message pump
 			Application.Run();

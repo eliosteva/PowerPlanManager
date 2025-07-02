@@ -13,7 +13,7 @@ namespace PowerPlanManager
 		DC = 2,
 	}
 
-	internal static class PowerPlanWrapper
+	internal static class PowerPlansApiWrapper
 	{
 
 		#region DLL Imports

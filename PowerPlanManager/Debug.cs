@@ -9,14 +9,29 @@ namespace PowerPlanManager
 
 		const string file = "PowerPlanManager.log";
 
-		static string Now
+		static string Now => DateTime.Now.ToString("yyyy/MM/dd - HH:mm");
+
+
+		public static void Initialize()
 		{
-			get
+			if (File.Exists(file))
 			{
-				return DateTime.Now.ToString("yyyy/MM/dd - HH:mm");
+				var lineCount = 0;
+				using (var reader = File.OpenText(file))
+				{
+					while (reader.ReadLine() != null)
+					{
+						lineCount++;
+					}
+				}
+				if (lineCount > 5000)
+				{
+					Log("clearing log file");
+					File.Delete(file);
+					Log("log file has been cleared");
+				}
 			}
 		}
-
 
 		public delegate void StringEventHandler(string message);
 

@@ -193,7 +193,7 @@ namespace PowerPlanManager
 
 		
 
-		public enum Mode
+		public enum Status
 		{
 			idle = 0,
 			balanced = 1,
@@ -296,11 +296,13 @@ namespace PowerPlanManager
 
 		internal Action ModeAppliedEvent;
 
-		internal Mode CurrentMode => currentMode;
-		internal string CurrentModeReason => currentModeReason;
+		internal Status CurrentMode => currentStatus;
+		internal string CurrentModeReason => currentStatusReason;
+		internal bool IsForced => forced;
 
-		Mode currentMode = Mode.balanced;
-		string currentModeReason = "";
+
+		Status currentStatus = Status.balanced;
+		string currentStatusReason = "";
 		bool forced = false;
 		DateTime lastHibernationTime;
 
@@ -312,7 +314,7 @@ namespace PowerPlanManager
 				if (forced)
 				{
 #if DEBUG
-					Debug.Log("polling disabled: current mode is forced");
+					Debug.Log("[DEBUG] polling update: disabled due to forced status");
 #endif
 					return;
 				}
@@ -325,9 +327,9 @@ namespace PowerPlanManager
 						if (IsProcessRunning(name))
 						{
 #if DEBUG
-							Debug.Log("polling results: performance due to running process " + name);
+							Debug.Log("[DEBUG] polling update: Performance due to running process " + name);
 #endif
-							ApplyMode(Mode.performance, "process running (" + name +  ")");
+							ApplyStatus(Status.performance, "process running (" + name +  ")");
 							return;
 						}
 					}
@@ -341,9 +343,9 @@ namespace PowerPlanManager
 						if (IsProcessRunning(name))
 						{
 #if DEBUG
-							Debug.Log("polling results: balanced due to running process " + name);
+							Debug.Log("[DEBUG] polling update: Balanced due to running process " + name);
 #endif
-							ApplyMode(Mode.balanced, "process running (" + name + ")");
+							ApplyStatus(Status.balanced, "process running (" + name + ")");
 							return;
 						}
 					}
@@ -356,12 +358,12 @@ namespace PowerPlanManager
 					if (idleTime.TotalSeconds >= inputTimeout)
 					{
 						// enter idle
-						if (currentMode != Mode.idle)
+						if (currentStatus != Status.idle)
 						{
 #if DEBUG
-							Debug.Log("polling results: idle due to user input timeout");
+							Debug.Log("[DEBUG] polling update: Idle due to user input timeout");
 #endif
-							ApplyMode(Mode.idle, "user input timeout");
+							ApplyStatus(Status.idle, "user input timeout");
 						}
 						return;
 					}
@@ -373,19 +375,19 @@ namespace PowerPlanManager
 					if (GetScreenSaverRunning())
 					{
 						// enter idle
-						if (currentMode != Mode.idle)
+						if (currentStatus != Status.idle)
 						{
 #if DEBUG
-							Debug.Log("polling results: idle due to screen saver running");
+							Debug.Log("[DEBUG] polling update: Idle due to screen saver running");
 #endif
-							ApplyMode(Mode.idle, "screen saver running");
+							ApplyStatus(Status.idle, "screen saver running");
 						}
 						return;
 					}
 				}
 
 				// if currently idle
-				if (currentMode == Mode.idle)
+				if (currentStatus == Status.idle)
 				{
 					if (ManualHibernation)
 					{
@@ -396,8 +398,8 @@ namespace PowerPlanManager
                             if ((DateTime.Now - lastHibernationTime).TotalMinutes > ppm.HibernateTimeout)
 							{
 								// manually hibernate
-								Debug.Log("polling results: hibernation time elapsed, triggering manual hibernation");
-								PowerPlanWrapper.SetSuspendState(true, true, true);
+								Debug.Log("polling update: Hibernation time elapsed, triggering manual hibernation");
+								PowerPlansApiWrapper.SetSuspendState(true, true, true);
 								return;
 							}
 						}
@@ -405,9 +407,9 @@ namespace PowerPlanManager
 				}
 
 #if DEBUG
-				Debug.Log("polling results: balanced due to user input detected");
+				Debug.Log("[DEBUG] polling update: Balanced due to user input detected");
 #endif
-				ApplyMode(Mode.balanced, "user input detected");
+				ApplyStatus(Status.balanced, "user input detected");
 			}
 			catch (Exception ex)
 			{
@@ -415,21 +417,13 @@ namespace PowerPlanManager
 			}
 		}
 
-		void ApplyMode(Mode mode, string reason)
+		void ApplyStatus(Status status, string reason)
 		{
-			currentModeReason = reason;
-			currentMode = mode;
-			ppm.ApplyPowerMode(mode);
+			if (currentStatus != status) Debug.Log("applying status: " + status);
+			currentStatusReason = reason;
+			currentStatus = status;
+			ppm.ApplyPowerPlanForStatus(status);
 			ModeAppliedEvent?.Invoke();
-
-			/*
-			if (currentMode == mode) return;
-			currentMode = mode;
-
-			Debug.Log("applying power mode: " + mode);
-			ppm.ApplyPowerMode(mode);
-			ModeAppliedEvent?.Invoke();
-			*/
 		}
 
 		bool IsProcessRunning(string name)
@@ -438,10 +432,10 @@ namespace PowerPlanManager
 			return pname.Length != 0;
 		}
 
-		internal void ForceMode(Mode mode)
+		internal void ForceStatus(Status status)
 		{
 			forced = true;
-			ApplyMode(mode, "forced");
+			ApplyStatus(status, "forced");
 		}
 
 		internal void ResetForced()

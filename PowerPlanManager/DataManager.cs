@@ -31,14 +31,9 @@ namespace PowerPlanManager
 
 			Debug.Log("initializing data manager");
 
-			dataFilePath = Path.Combine(si.AppDataDirPath, dataFileName);
+			//dataFilePath = Path.Combine(si.AppDataDirPath, dataFileName);
+			dataFilePath = dataFileName;
 
-
-			Initialize();
-		}
-
-		void Initialize()
-		{
 			// load prefs
 			LoadPrefs();
 		}

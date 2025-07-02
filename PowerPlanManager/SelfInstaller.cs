@@ -39,10 +39,33 @@ namespace PowerPlanManager
 			targetAppDirPath = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), companyName);
 			targetAppPath = Path.Combine(targetAppDirPath, appName);
 			targetExePath = targetAppPath + ".exe";
-
 		}
 
-		internal bool IsAutostarting()
+		internal bool Initialize()
+		{
+			if (!IsInstalled())
+			{
+				Debug.Log("application not started from install location, asking to install");
+				if (AskToInstall())
+				{
+					Debug.Log("installing application");
+					Install();
+					Application.Exit();
+					return false;
+				}
+				else Debug.Log("user refused application installation");
+#if !DEBUG
+				return false;
+#endif
+			}
+			else
+			{
+				Debug.Log("application is installed");
+			}
+			return true;
+		}
+
+		internal bool IsAutoStartEnabled()
 		{
 			//Debug.Log("checking autostart registry key");
 			RegistryKey rk = Registry.CurrentUser.OpenSubKey("SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run", true);
@@ -67,7 +90,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		internal bool IsInstalled()
+		bool IsInstalled()
 		{
 			Debug.Log("checking if app is installed");
 
@@ -80,34 +103,9 @@ namespace PowerPlanManager
 			{
 				return true;
 			}
-
-			// check dir
-			//if (currentAppDirPath == targetAppDirPath)
-			//{
-			//	check registry
-			//	using (RegistryKey registryKey = Registry.CurrentUser.OpenSubKey(@"SOFTWARE\Microsoft\Windows\CurrentVersion\Run"))
-			//	{
-			//		string value = (string)registryKey.GetValue(programName);
-			//		if (!string.IsNullOrEmpty(value) && value == targetExePath)
-			//		{
-			//			Debug.Log("app is installed (value is: " + value + ")");
-			//			return true;
-			//		}
-			//		else
-			//		{
-			//			Debug.Log("app is not installed (value is: " + value + ")");
-			//			return false;
-			//		}
-			//	}
-			//}
-			//else
-			//{
-			//	Debug.Log("app was not started from install location\ncurrent dir: " + currentAppDirPath + "\ninstall dir: " + targetAppDirPath);
-			//	return false;
-			//}
 		}
 
-		internal bool AskToInstall()
+		bool AskToInstall()
 		{
 			DialogResult dr = MessageBox.Show("Application not installed. Would you like to install?\nApp will be copied to AppData\\Local and will restart", "", MessageBoxButtons.YesNo);
 			if (dr == System.Windows.Forms.DialogResult.Yes)
@@ -120,7 +118,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		internal void Install()
+		void Install()
 		{
 			try
 			{

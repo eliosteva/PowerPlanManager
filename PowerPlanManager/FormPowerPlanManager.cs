@@ -55,7 +55,7 @@ namespace PowerPlanManager
 
 		void Draw()
 		{
-			Debug.Log("drawing");
+			//Debug.Log("drawing");
 
 			DrawPowerPlans();
 
@@ -65,27 +65,28 @@ namespace PowerPlanManager
 
 			// show options
 			pollingInterval.Value = im.PollingInterval;
-			toggleAutoStart.Checked = si.IsAutostarting();
+			toggleAutoStart.Checked = si.IsAutoStartEnabled();
 			toggleIdleOnScreensaver.Checked = im.IdleOnScreensaver;
 			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
 			inputTimeout.Value = im.InputTimeout;
 			displayTimeout.Value = ppm.DisplayTimeout;
 			sleepTimeout.Value = ppm.SleepTimeout;
 			hibernateTimeout.Value = ppm.HibernateTimeout;
-
-			
+			rbModePowerSaver.Checked = pmm.IsCurrentModePowerSaver;
+			rbModeBalanced.Checked = pmm.IsCurrentModeBalanced;
+			rbModePerformance.Checked = pmm.IsCurrentModePerformance;
 		}
 
 		void DrawPowerPlans()
 		{
 			string[] plansNames = ppm.GetAllPowerPlansNames().ToArray();
 
-			void DisplaySelectedPowerPlanInComboForMode(ComboBox cmb, Mode mode)
+			void DisplaySelectedPowerPlanInComboForMode(ComboBox cmb, Status mode)
 			{
 				ignoreEvents = true;
 				{
 					// get selected pp name
-					var ppName = ppm.GetSelectedPowerPlanNameForMode(mode);
+					var ppName = ppm.GetSelectedPowerPlanNameForStatus(mode);
 					cmb.Items.Clear();
 					cmb.Items.AddRange(plansNames);
 					cmb.SelectedItem = null;
@@ -98,9 +99,11 @@ namespace PowerPlanManager
 				ignoreEvents = false;
 			}
 
-			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanIdle, Mode.idle);
-			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanBalanced, Mode.balanced);
-			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanPerformance, Mode.performance);
+			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanIdle, Status.idle);
+			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanBalanced, Status.balanced);
+			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanPerformance, Status.performance);
+
+			buttonResetForced.Enabled = im.IsForced;
 		}
 
 		void DrawProcesses()
@@ -148,33 +151,32 @@ namespace PowerPlanManager
 		void DrawCurrentMode()
 		{
 			// show current power mode
-			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
+			//labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
 
 			// show current status
 			if (!pmm.IsCurrentModeBalanced)
 			{
-				labelStatus.Text = "DISABLED due to PowerMode not Balanced (PowerPlans are not used by Windows if PowerMode is not Balanced)";
+				labelStatus.Text = "NOT WORKING due to PowerMode not Balanced (PowerPlans are applied by Windows only with balanced PowerMode)";
 				pictureBoxStatus.Image = Resources.idle.ToBitmap();
 			}
 			else
 			{
 				switch (im.CurrentMode)
 				{
-					case Mode.idle:
-						labelStatus.Text = ppm.GetSelectedPowerPlanNameForMode(im.CurrentMode) + " due to " + im.CurrentModeReason;
+					case Status.idle:
+						labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentMode) + " due to " + im.CurrentModeReason;
 						pictureBoxStatus.Image = Resources.idle.ToBitmap();
 						break;
-					case Mode.balanced:
-						labelStatus.Text = ppm.GetSelectedPowerPlanNameForMode(im.CurrentMode) + " due to " + im.CurrentModeReason;
+					case Status.balanced:
+						labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentMode) + " due to " + im.CurrentModeReason;
 						pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 						break;
-					case Mode.performance:
-						labelStatus.Text = ppm.GetSelectedPowerPlanNameForMode(im.CurrentMode) + " due to " + im.CurrentModeReason;
+					case Status.performance:
+						labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentMode) + " due to " + im.CurrentModeReason;
 						pictureBoxStatus.Image = Resources.performance.ToBitmap();
 						break;
 				}
 			}
-			
 		}
 
 		void buttonIdleToBalanced_Click(object sender, EventArgs e)
@@ -226,30 +228,30 @@ namespace PowerPlanManager
 		{
 			if (ignoreEvents) return;
 
-			Mode mode = Mode.idle;
+			Status mode = Status.idle;
 			string selection = cmbPowerPlanIdle.SelectedItem.ToString();
 			Debug.Log("power plan named " + selection + " selected for mode " + mode);
-			ppm.SelectPowerPlanForMode(selection, mode);
+			ppm.SelectPowerPlanForStatus(selection, mode);
 		}
 
 		void cmbPowerPlanBalanced_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			if (ignoreEvents) return;
 
-			Mode mode = Mode.balanced;
+			Status mode = Status.balanced;
 			string selection = cmbPowerPlanBalanced.SelectedItem.ToString();
 			Debug.Log("power plan named " + selection + " selected for mode " + mode);
-			ppm.SelectPowerPlanForMode(selection, mode);
+			ppm.SelectPowerPlanForStatus(selection, mode);
 		}
 
 		void cmbPowerPlanPerformance_SelectedIndexChanged(object sender, EventArgs e)
 		{
 			if (ignoreEvents) return;
 
-			Mode mode = Mode.performance;
+			Status mode = Status.performance;
 			string selection = cmbPowerPlanPerformance.SelectedItem.ToString();
 			Debug.Log("power plan named " + selection + " selected for mode " + mode);
-			ppm.SelectPowerPlanForMode(selection, mode);
+			ppm.SelectPowerPlanForStatus(selection, mode);
 		}
 
 
@@ -311,31 +313,23 @@ namespace PowerPlanManager
 			Draw();
 		}
 
-		void button1_Click(object sender, EventArgs e)
+		void rbModePowerSaver_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyBatterySaverPowerMode();
 			Draw();
 		}
 
-		void button2_Click(object sender, EventArgs e)
+		void rbModeBalanced_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyBalancedPowerMode();
 			Draw();
 		}
 
-		void buttonApplyPerformanceMode_Click(object sender, EventArgs e)
+		void rbModePerformance_Click(object sender, EventArgs e)
 		{
 			pmm.ApplyPerformancePowerMode();
 			Draw();
 		}
-
-		void button3_Click(object sender, EventArgs e)
-		{
-			Application.Exit();
-		}
-
-
-
 
 		#endregion
 
@@ -347,21 +341,30 @@ namespace PowerPlanManager
 
 		void buttonForceIdle_Click(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.idle);
+			im.ForceStatus(Status.idle);
 			Draw();
 		}
 
 		void buttonForceBalanced_Click(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.balanced);
+			im.ForceStatus(Status.balanced);
 			Draw();
 		}
 
 		void buttonForcePerformance_Click(object sender, EventArgs e)
 		{
-			im.ForceMode(Mode.performance);
+			im.ForceStatus(Status.performance);
 			Draw();
 		}
 
+		void buttonReloadPlans_Click(object sender, EventArgs e)
+		{
+			ppm.ReadPowerPlans();
+		}
+
+		void buttonQuit_Click(object sender, EventArgs e)
+		{
+			Application.Exit();
+		}
 	}
 }

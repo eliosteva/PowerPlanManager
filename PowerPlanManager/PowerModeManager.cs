@@ -12,12 +12,30 @@ namespace PowerPlanManager
 
 		internal Action PowerModeAppliedEvent;
 
+		internal bool IsCurrentModePowerSaver
+		{
+			get
+			{
+				PowerGetEffectiveOverlayScheme(out Guid guid);
+				return guid == PowerMode.BetterBattery;
+			}
+		}
+
 		internal bool IsCurrentModeBalanced
 		{
 			get
 			{
 				PowerGetEffectiveOverlayScheme(out Guid guid);
 				return guid == PowerMode.BetterPerformance;
+			}
+		}
+		
+		internal bool IsCurrentModePerformance
+		{
+			get
+			{
+				PowerGetEffectiveOverlayScheme(out Guid guid);
+				return guid == PowerMode.BestPerformance;
 			}
 		}
 
