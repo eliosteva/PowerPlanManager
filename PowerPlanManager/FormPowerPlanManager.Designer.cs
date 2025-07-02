@@ -456,6 +456,7 @@ namespace PowerPlanManager
 			this.listBoxBalanced.Location = new System.Drawing.Point(5, 32);
 			this.listBoxBalanced.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxBalanced.Name = "listBoxBalanced";
+			this.listBoxBalanced.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxBalanced.Size = new System.Drawing.Size(216, 251);
 			this.listBoxBalanced.TabIndex = 46;
 			// 
@@ -490,6 +491,7 @@ namespace PowerPlanManager
 			this.listBoxPerformance.Location = new System.Drawing.Point(5, 32);
 			this.listBoxPerformance.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxPerformance.Name = "listBoxPerformance";
+			this.listBoxPerformance.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxPerformance.Size = new System.Drawing.Size(216, 251);
 			this.listBoxPerformance.TabIndex = 46;
 			// 
@@ -513,6 +515,7 @@ namespace PowerPlanManager
 			this.listBoxIdle.Location = new System.Drawing.Point(5, 32);
 			this.listBoxIdle.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxIdle.Name = "listBoxIdle";
+			this.listBoxIdle.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
 			this.listBoxIdle.Size = new System.Drawing.Size(218, 251);
 			this.listBoxIdle.TabIndex = 46;
 			// 
@@ -521,9 +524,9 @@ namespace PowerPlanManager
 			this.buttonRefreshPrcesses.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Center;
 			this.buttonRefreshPrcesses.Location = new System.Drawing.Point(6, 92);
 			this.buttonRefreshPrcesses.Name = "buttonRefreshPrcesses";
-			this.buttonRefreshPrcesses.Size = new System.Drawing.Size(104, 20);
+			this.buttonRefreshPrcesses.Size = new System.Drawing.Size(104, 40);
 			this.buttonRefreshPrcesses.TabIndex = 45;
-			this.buttonRefreshPrcesses.Text = "Refresh";
+			this.buttonRefreshPrcesses.Text = "Refresh Process List";
 			this.buttonRefreshPrcesses.UseVisualStyleBackColor = true;
 			this.buttonRefreshPrcesses.Click += new System.EventHandler(this.buttonRefreshPrcesses_Click);
 			// 

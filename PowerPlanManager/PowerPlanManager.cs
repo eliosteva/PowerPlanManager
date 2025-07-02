@@ -184,11 +184,12 @@ namespace PowerPlanManager
 				string name = PowerPlanWrapper.GetPlanName(plan);
 
 				// match or create power plans with ManagedPowerPlan
-				if (plan.Equals(PowerPlanGuid_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
-				else if (name.Equals(PowerPlanName_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
-				else if (name.Equals(PowerPlanName_PPM_PowerSaver)) SetOrAddPowerPlan(ref managedPlanPowerSaver, plan, PowerPlanName_PPM_PowerSaver);
-				else if (name.Equals(PowerPlanName_PPM_Balanced)) SetOrAddPowerPlan(ref managedPlanBalanced, plan, PowerPlanName_PPM_Balanced);
-				else if (name.Equals(PowerPlanName_PPM_Performance)) SetOrAddPowerPlan(ref managedPlanPerformance, plan, PowerPlanName_PPM_Performance);
+				if (defaultPlanBalanced == null && plan.Equals(PowerPlanGuid_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
+				if (defaultPlanBalanced == null && name.Equals(PowerPlanName_Balanced)) SetOrAddPowerPlan(ref defaultPlanBalanced, plan, PowerPlanName_Balanced);
+
+				if (managedPlanPowerSaver == null && name.Equals(PowerPlanName_PPM_PowerSaver)) SetOrAddPowerPlan(ref managedPlanPowerSaver, plan, PowerPlanName_PPM_PowerSaver);
+				if (managedPlanBalanced == null && name.Equals(PowerPlanName_PPM_Balanced)) SetOrAddPowerPlan(ref managedPlanBalanced, plan, PowerPlanName_PPM_Balanced);
+				if (managedPlanPerformance == null && name.Equals(PowerPlanName_PPM_Performance)) SetOrAddPowerPlan(ref managedPlanPerformance, plan, PowerPlanName_PPM_Performance);
 
 				else
 				{
@@ -207,17 +208,18 @@ namespace PowerPlanManager
 			if (managedPlanPerformance != null) ApplyPowerPlanSettings(managedPlanPerformance, ProcessorBoostModes.enabled, 0, 0, 0, 100);
 		}
 
-		internal bool IsInstalled()
+		internal bool HasManagedPlansInstalled()
 		{
 			Refresh();
 
 			return managedPlanPowerSaver != null && managedPlanBalanced != null && managedPlanPerformance != null;
 		}
 
-		internal bool AskToInstall()
+		internal bool AskToInstallCustomPlans()
 		{
 			Debug.Log("asking to install");
-			DialogResult dr = MessageBox.Show("Custom power plans not installed. Install?", "", MessageBoxButtons.YesNo);
+			dm.SetPref("askedToInstall", true.ToString());
+			DialogResult dr = MessageBox.Show("Managed PowerPlans not installed. Install?", "", MessageBoxButtons.YesNo);
 			if (dr == System.Windows.Forms.DialogResult.Yes)
 			{
 				return true;
@@ -228,16 +230,22 @@ namespace PowerPlanManager
 			}
 		}
 
-		internal void Install()
+		internal bool AskedToInstallManagedPlans()
+		{
+			return dm.GetPref("askedToInstall") == true.ToString();
+		}
+
+		internal void InstallManagedPlans()
 		{
 			// must have balanced power plan
+			Refresh();
 			if (defaultPlanBalanced == null)
 			{
-				MessageBox.Show("Default Balanced PowerPlan not found", "");
+				MessageBox.Show("Cannot install managed PowerPlans, default Balanced PowerPlan not found", "");
 				return;
 			}
 
-			Debug.Log("installing custom power plans");
+			Debug.Log("installing managed PowerPlans");
 			IntPtr RetrPointer = IntPtr.Zero;
 
 			// duplicate managed plans from default balanced
@@ -249,11 +257,19 @@ namespace PowerPlanManager
 			Refresh();
 
 			// select managed plans
-			Debug.Log("selecting default installed power plans");
+			Debug.Log("selecting managed PowerPlans");
 			selectedPlanPowerSaver = managedPlanPowerSaver;
 			selectedPlanBalanced = managedPlanBalanced;
 			selectedPlanPerformance = managedPlanPerformance;
 		}
+
+		internal void UninstallManagedPlans()
+		{
+			if (managedPlanPowerSaver != null) PowerPlanWrapper.DeletePlan(managedPlanPowerSaver.guid);
+			if (managedPlanBalanced != null) PowerPlanWrapper.DeletePlan(managedPlanBalanced.guid);
+			if (managedPlanPerformance != null) PowerPlanWrapper.DeletePlan(managedPlanPerformance.guid);
+		}
+
 
 		internal void ApplyPowerMode(Mode mode)
 		{

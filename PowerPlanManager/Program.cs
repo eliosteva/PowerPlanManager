@@ -36,21 +36,42 @@ namespace PowerPlanManager
 			DataManager dm = new DataManager(si);
 			PowerModeManager pmm = new PowerModeManager(dm);
 			PowerPlanManager ppm = new PowerPlanManager(dm);
-			if (!ppm.IsInstalled())
+
+#if DEBUG
+			//ppm.UninstallCustomPlans();
+#endif
+
+			if (!ppm.HasManagedPlansInstalled())
 			{
-				if (ppm.AskToInstall())
+				Debug.Log("managed PowerPlans not installed");
+				if (!ppm.AskedToInstallManagedPlans())
 				{
-					ppm.Install();
+					Debug.Log("asking to install managed PowerPlans");
+					if (ppm.AskToInstallCustomPlans())
+					{
+						Debug.Log("installing managed PowerPlans");
+						ppm.InstallManagedPlans();
+					}
+					else Debug.Log("user refused managed PowerPlans installation");
 				}
+				else Debug.Log("already asked to install managed PowerPlans, will not ask again");
 			}
+			else Debug.Log("managed PowerPlans already installed");
 
 #if !DEBUG
-			if (!si.IsInstalled() && si.AskToInstall())
+			if (!si.IsInstalled())
 			{
-				si.Install();
-				Application.Exit();
-				return;
+				Debug.Log("application not started from install location, asking to install");
+				if (si.AskToInstall())
+				{
+					Debug.Log("installing application");
+					si.Install();
+					Application.Exit();
+					return;
+				}
+				else Debug.Log("user refused application installation");
 			}
+			else Debug.Log("application is installed");
 #endif
 
 			// init idle

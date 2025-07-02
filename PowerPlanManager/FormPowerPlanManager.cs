@@ -179,7 +179,7 @@ namespace PowerPlanManager
 
 		void buttonIdleToBalanced_Click(object sender, EventArgs e)
 		{
-			if (listBoxIdle.SelectedItem == null) return;
+			if (listBoxIdle.SelectedItems == null) return;
 
 			// move idle to balanced
 			im.AddBalancedProcess(listBoxIdle.SelectedItems.Cast<string>());
@@ -189,7 +189,7 @@ namespace PowerPlanManager
 
 		void buttonBalancedToIdle_Click(object sender, EventArgs e)
 		{
-			if (listBoxBalanced.SelectedItem == null) return;
+			if (listBoxBalanced.SelectedItems == null) return;
 
 			// move balanced to idle
 			im.AddIdleProcess(listBoxBalanced.SelectedItems.Cast<string>());
@@ -199,7 +199,7 @@ namespace PowerPlanManager
 
 		void buttonBalancedToPerf_Click(object sender, EventArgs e)
 		{
-			if (listBoxBalanced.SelectedItem == null) return;
+			if (listBoxBalanced.SelectedItems == null) return;
 
 			// move balanced to perf
 			im.AddPerformanceProcess(listBoxBalanced.SelectedItems.Cast<string>());
@@ -209,7 +209,7 @@ namespace PowerPlanManager
 
 		void buttonPerfToBalanced_Click(object sender, EventArgs e)
 		{
-			if (listBoxPerformance.SelectedItem == null) return;
+			if (listBoxPerformance.SelectedItems == null) return;
 
 			// move balanced to idle
 			im.AddBalancedProcess(listBoxPerformance.SelectedItems.Cast<string>());
@@ -363,6 +363,5 @@ namespace PowerPlanManager
 			Draw();
 		}
 
-		
 	}
 }

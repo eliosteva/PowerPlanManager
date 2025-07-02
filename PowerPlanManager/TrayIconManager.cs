@@ -37,8 +37,8 @@ namespace PowerPlanManager
 			// context menu item
 			ToolStripMenuItem menuItemShow = new ToolStripMenuItem();
 			menuItemShow.Size = new System.Drawing.Size(104, 48);
-			menuItemShow.Name = "Open";
-			menuItemShow.Text = "Open";
+			menuItemShow.Name = "Show";
+			menuItemShow.Text = "Show";
 			menuItemShow.Click += ShowForm;
 			contextMenuStrip.Items.Add(menuItemShow);
 
@@ -49,6 +49,38 @@ namespace PowerPlanManager
 			menuItemBrowse.Text = "Browse";
 			menuItemBrowse.Click += ShowFolder;
 			contextMenuStrip.Items.Add(menuItemBrowse);
+
+			// context menu item
+			ToolStripMenuItem menuItemForceDefault = new ToolStripMenuItem();
+			menuItemForceDefault.Size = new System.Drawing.Size(104, 48);
+			menuItemForceDefault.Name = "Reset";
+			menuItemForceDefault.Text = "Reset";
+			menuItemForceDefault.Click += ResetToDefault;
+			contextMenuStrip.Items.Add(menuItemForceDefault);
+
+			// context menu item
+			ToolStripMenuItem menuItemForceIdle = new ToolStripMenuItem();
+			menuItemForceIdle.Size = new System.Drawing.Size(104, 48);
+			menuItemForceIdle.Name = "ForceIdle";
+			menuItemForceIdle.Text = "Force Idle";
+			menuItemForceIdle.Click += ForceIdle;
+			contextMenuStrip.Items.Add(menuItemForceIdle);
+
+			// context menu item
+			ToolStripMenuItem menuItemForceBalanced = new ToolStripMenuItem();
+			menuItemForceBalanced.Size = new System.Drawing.Size(104, 48);
+			menuItemForceBalanced.Name = "ForceBalanced";
+			menuItemForceBalanced.Text = "Force Balanced";
+			menuItemForceBalanced.Click += ForceBalanced;
+			contextMenuStrip.Items.Add(menuItemForceBalanced);
+
+			// context menu item
+			ToolStripMenuItem menuItemForcePerformance = new ToolStripMenuItem();
+			menuItemForcePerformance.Size = new System.Drawing.Size(104, 48);
+			menuItemForcePerformance.Name = "ForcePerformance";
+			menuItemForcePerformance.Text = "Force Performance";
+			menuItemForcePerformance.Click += ForcePerformance;
+			contextMenuStrip.Items.Add(menuItemForcePerformance);
 
 			// context menu item
 			ToolStripMenuItem menuItemExit = new ToolStripMenuItem();
@@ -108,6 +140,26 @@ namespace PowerPlanManager
 		void ShowFolder(object sender, EventArgs e)
 		{
 			System.Diagnostics.Process.Start(si.AppDataDirPath);
+		}
+
+		void ResetToDefault(object sender, EventArgs e)
+		{
+			im.ResetForced();
+		}
+		
+		void ForceIdle(object sender, EventArgs e)
+		{
+			im.ForceMode(Mode.idle);
+		}
+		
+		void ForceBalanced(object sender, EventArgs e)
+		{
+			im.ForceMode(Mode.balanced);
+		}
+		
+		void ForcePerformance(object sender, EventArgs e)
+		{
+			im.ForceMode(Mode.performance);
 		}
 
 		void ExitApp(object sender, EventArgs e)
