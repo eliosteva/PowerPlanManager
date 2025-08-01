@@ -31,8 +31,8 @@ namespace PowerPlanManager
 
 			Debug.Log("initializing data manager");
 
-			//dataFilePath = Path.Combine(si.AppDataDirPath, dataFileName);
-			dataFilePath = dataFileName;
+			dataFilePath = Path.Combine(si.AppDataDirPath, dataFileName);
+			//dataFilePath = dataFileName;
 
 			// load prefs
 			LoadPrefs();
@@ -81,15 +81,22 @@ namespace PowerPlanManager
 
 		void SavePrefs()
 		{
-			string s = "";
-			foreach(var v in prefs)
+			try
 			{
-				s += v.Key + "=" + v.Value + "\n";
-			}
-			s = s.Trim();
+				string s = "";
+				foreach (var v in prefs)
+				{
+					s += v.Key + "=" + v.Value + "\n";
+				}
+				s = s.Trim();
 
-			if (!Directory.Exists(si.AppDataDirPath)) Directory.CreateDirectory(si.AppDataDirPath);
-			File.WriteAllText(dataFilePath, s);
+				if (!Directory.Exists(si.AppDataDirPath)) Directory.CreateDirectory(si.AppDataDirPath);
+				File.WriteAllText(dataFilePath, s);
+			}
+			catch (Exception ex)
+			{
+				Debug.LogError("failed to save prefs: " + ex.ToString());
+			}
 		}
 	}
 }

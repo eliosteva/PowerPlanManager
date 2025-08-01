@@ -141,9 +141,9 @@ namespace PowerPlanManager
 			hibernateTimeout = dm.GetPref("hibernateTimeout", hibernateTimeout);
 
 			// read saved selected PowerPlans
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPowerSaver", PowerPlanName_PPM_PowerSaver), Status.idle);
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanBalanced", PowerPlanName_PPM_Balanced), Status.balanced);
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPerformance", PowerPlanName_PPM_Performance), Status.performance);
+			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPowerSaver", PowerPlanName_PPM_PowerSaver), Status.idle, false);
+			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanBalanced", PowerPlanName_PPM_Balanced), Status.balanced, false);
+			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPerformance", PowerPlanName_PPM_Performance), Status.performance, false);
 		}
 
 		internal bool Initialize()
@@ -209,7 +209,7 @@ namespace PowerPlanManager
 			}
 		}
 
-		internal void SelectPowerPlanForStatus(string name, Status status)
+		internal void SelectPowerPlanForStatus(string name, Status status, bool save = true)
 		{
 			Debug.Log("selecting PowerPlan with name " + name + " for status " + status);
 			var powerPlan = GetPowerPlanWithName(name);
@@ -223,15 +223,15 @@ namespace PowerPlanManager
 			{
 				case Status.idle:
 					selectedPlanPowerSaver = powerPlan;
-					dm.SetPref("selectedPowerPlanPowerSaver", name);
+					if (save) dm.SetPref("selectedPowerPlanPowerSaver", name);
 					break;
 				case Status.balanced:
 					selectedPlanBalanced = powerPlan;
-					dm.SetPref("selectedPowerPlanBalanced", name);
+					if (save) dm.SetPref("selectedPowerPlanBalanced", name);
 					break;
 				case Status.performance:
 					selectedPlanPerformance = powerPlan;
-					dm.SetPref("selectedPowerPlanPerformance", name);
+					if (save) dm.SetPref("selectedPowerPlanPerformance", name);
 					break;
 				default: throw new Exception();
 			}
