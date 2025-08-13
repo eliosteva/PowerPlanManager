@@ -296,8 +296,8 @@ namespace PowerPlanManager
 
 		internal Action ModeAppliedEvent;
 
-		internal Status CurrentMode => currentStatus;
-		internal string CurrentModeReason => currentStatusReason;
+		internal Status CurrentStatus => currentStatus;
+		internal string CurrentStatusReason => currentStatusReason;
 		internal bool IsForced => forced;
 
 
@@ -329,7 +329,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("[DEBUG] polling update: Performance due to running process " + name);
 #endif
-							ApplyStatus(Status.performance, "process running (" + name +  ")");
+							ApplyStatus(Status.performance, "\"" + name + "\" process running");
 							return;
 						}
 					}
@@ -345,7 +345,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("[DEBUG] polling update: Balanced due to running process " + name);
 #endif
-							ApplyStatus(Status.balanced, "process running (" + name + ")");
+							ApplyStatus(Status.balanced, "\"" + name + "\" process running");
 							return;
 						}
 					}
@@ -435,7 +435,7 @@ namespace PowerPlanManager
 		internal void ForceStatus(Status status)
 		{
 			forced = true;
-			ApplyStatus(status, "forced");
+			ApplyStatus(status, "forced by user");
 		}
 
 		internal void ResetForced()

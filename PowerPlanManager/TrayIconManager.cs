@@ -155,7 +155,7 @@ namespace PowerPlanManager
 		{
 			try
 			{
-				switch (im.CurrentMode)
+				switch (im.CurrentStatus)
 				{
 					case Status.idle:
 						trayIcon.Icon = Resources.idle;
