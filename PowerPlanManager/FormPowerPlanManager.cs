@@ -69,16 +69,19 @@ namespace PowerPlanManager
 			toggleIdleOnScreensaver.Checked = im.IdleOnScreensaver;
 			toggleIdleOnTimeout.Checked = im.IdleOnTimeout;
 			inputTimeout.Value = im.InputTimeout;
-			displayTimeout.Value = ppm.DisplayTimeout;
-			sleepTimeout.Value = ppm.SleepTimeout;
-			hibernateTimeout.Value = ppm.HibernateTimeout;
-			//rbModePowerSaver.Checked = pmm.IsCurrentModePowerSaver;
-			//rbModeBalanced.Checked = pmm.IsCurrentModeBalanced;
-			//rbModePerformance.Checked = pmm.IsCurrentModePerformance;
+			displayTimeoutIdle.Value = ppm.DisplayTimeoutIdle;
+			displayTimeoutBalanced.Value = ppm.DisplayTimeoutBalanced;
+			displayTimeoutBoost.Value = ppm.DisplayTimeoutBoost;
+			sleepTimeoutIdle.Value = ppm.SleepTimeoutIdle;
+			sleepTimeoutBalanced.Value = ppm.SleepTimeoutBalanced;
+			sleepTimeoutBoost.Value = ppm.SleepTimeoutBoost;
+			//hibernateTimeoutIdle.Value = ppm.HibernateTimeoutIdle;
+			//hibernateTimeoutBalanced.Value = ppm.HibernateTimeoutBalanced;
+			//hibernateTimeoutBoost.Value = ppm.HibernateTimeoutBoost;
 			buttonAuto.BackColor = im.IsForced == false ? Color.FromKnownColor(KnownColor.Highlight) : Color.White;
 			buttonPowerSaver.BackColor = im.IsForced && im.CurrentStatus == Status.idle ? Color.FromKnownColor(KnownColor.Highlight) : Color.White;
 			buttonBalanced.BackColor = im.IsForced && im.CurrentStatus == Status.balanced ? Color.FromKnownColor(KnownColor.Highlight) : Color.White;
-			buttonPerformance.BackColor = im.IsForced && im.CurrentStatus == Status.performance ? Color.FromKnownColor(KnownColor.Highlight) : Color.White;
+			buttonPerformance.BackColor = im.IsForced && im.CurrentStatus == Status.boost ? Color.FromKnownColor(KnownColor.Highlight) : Color.White;
 
 			buttonApplyBalancedPowerMode.Visible = !pmm.IsCurrentModeBalanced;
 		}
@@ -109,7 +112,7 @@ namespace PowerPlanManager
 
 			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanIdle, Status.idle);
 			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanBalanced, Status.balanced);
-			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanPerformance, Status.performance);
+			DisplaySelectedPowerPlanInComboForMode(cmbPowerPlanPerformance, Status.boost);
 		}
 
 		void DrawProcesses()
@@ -173,7 +176,7 @@ namespace PowerPlanManager
 					case Status.idle:
 						labelStatus.ForeColor = Color.DarkOrange;
 						//labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentStatus) + " (" + im.CurrentStatusReason + ")";
-						labelStatus.Text = "PowerSaver (" + im.CurrentStatusReason + ")";
+						labelStatus.Text = "Idle (" + im.CurrentStatusReason + ")";
 						pictureBoxStatus.Image = Resources.idle.ToBitmap();
 						break;
 					case Status.balanced:
@@ -182,10 +185,10 @@ namespace PowerPlanManager
 						labelStatus.Text = "Balanced (" + im.CurrentStatusReason + ")";
 						pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 						break;
-					case Status.performance:
+					case Status.boost:
 						labelStatus.ForeColor = Color.Red;
 						//labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentStatus) + " (" + im.CurrentStatusReason + ")";
-						labelStatus.Text = "Performance (" + im.CurrentStatusReason + ")";
+						labelStatus.Text = "Boost (" + im.CurrentStatusReason + ")";
 						pictureBoxStatus.Image = Resources.performance.ToBitmap();
 						break;
 				}
@@ -256,7 +259,7 @@ namespace PowerPlanManager
 		{
 			if (ignoreEvents) return;
 
-			Status mode = Status.performance;
+			Status mode = Status.boost;
 			string selection = cmbPowerPlanPerformance.SelectedItem.ToString();
 			Debug.Log("power plan named " + selection + " selected for mode " + mode);
 			ppm.SelectPowerPlanForStatus(selection, mode);
@@ -287,11 +290,6 @@ namespace PowerPlanManager
 			Draw();
 		}
 
-		void toggleManualHibernate_CheckedChanged(object sender, EventArgs e)
-		{
-			im.ManualHibernation = toggleManualHibernate.Checked;
-		}
-
 		void inputTimeout_ValueChanged(object sender, EventArgs e)
 		{
 			im.InputTimeout = (int)inputTimeout.Value;
@@ -299,18 +297,48 @@ namespace PowerPlanManager
 
 		void displayTimeout_ValueChanged(object sender, EventArgs e)
 		{
-			ppm.DisplayTimeout = (uint)displayTimeout.Value;
+			ppm.DisplayTimeoutIdle = (uint)displayTimeoutIdle.Value;
 		}
 
-		void sleepTimeout_ValueChanged(object sender, EventArgs e)
+		void displayTimeoutBalanced_ValueChanged(object sender, EventArgs e)
 		{
-			ppm.SleepTimeout = (uint)sleepTimeout.Value;
+			ppm.DisplayTimeoutBalanced = (uint)displayTimeoutBalanced.Value;
 		}
 
-		void hibernateTimeout_ValueChanged(object sender, EventArgs e)
+		void displayTimeoutBoost_ValueChanged(object sender, EventArgs e)
 		{
-			ppm.HibernateTimeout = (uint)hibernateTimeout.Value;
+			ppm.DisplayTimeoutBoost = (uint)displayTimeoutBoost.Value;
 		}
+
+		void sleepTimeoutIdle_ValueChanged(object sender, EventArgs e)
+		{
+			ppm.SleepTimeoutIdle = (uint)sleepTimeoutIdle.Value;
+		}
+
+		void sleepTimeoutBalanced_ValueChanged(object sender, EventArgs e)
+		{
+			ppm.SleepTimeoutBalanced = (uint)sleepTimeoutBalanced.Value;
+		}
+
+		void sleepTimeoutBoost_ValueChanged(object sender, EventArgs e)
+		{
+			ppm.SleepTimeoutBoost = (uint)sleepTimeoutBoost.Value;
+		}
+
+		//void hibernateTimeout_ValueChanged(object sender, EventArgs e)
+		//{
+		//	ppm.HibernateTimeoutIdle = (uint)hibernateTimeoutIdle.Value;
+		//}
+
+		//void hibernateTimeoutBalanced_ValueChanged(object sender, EventArgs e)
+		//{
+		//	ppm.HibernateTimeoutBalanced = (uint)hibernateTimeoutBalanced.Value;
+		//}
+
+		//void hibernateTimeoutBoost_ValueChanged(object sender, EventArgs e)
+		//{
+		//	ppm.HibernateTimeoutBoost = (uint)hibernateTimeoutBoost.Value;
+		//}
 
 		#endregion
 
@@ -367,7 +395,7 @@ namespace PowerPlanManager
 
 		void buttonPerformance_Click(object sender, EventArgs e)
 		{
-			im.ForceStatus(Status.performance);
+			im.ForceStatus(Status.boost);
 			Draw();
 		}
 
@@ -376,5 +404,6 @@ namespace PowerPlanManager
 			Application.Exit();
 		}
 
+		
 	}
 }

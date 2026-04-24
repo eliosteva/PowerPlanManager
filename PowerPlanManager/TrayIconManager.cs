@@ -163,7 +163,7 @@ namespace PowerPlanManager
 					case Status.balanced:
 						trayIcon.Icon = Resources.balanced;
 						break;
-					case Status.performance:
+					case Status.boost:
 						trayIcon.Icon = Resources.performance;
 						break;
 				}
@@ -206,7 +206,7 @@ namespace PowerPlanManager
 		
 		void ForcePerformance(object sender, EventArgs e)
 		{
-			im.ForceStatus(Status.performance);
+			im.ForceStatus(Status.boost);
 		}
 
 		void ExitApp(object sender, EventArgs e)

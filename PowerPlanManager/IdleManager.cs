@@ -26,7 +26,7 @@ namespace PowerPlanManager
 				if (value != idleOnScreensaver)
 				{
 					idleOnScreensaver = value;
-					dm.SetPref("idleOnScreensaver", value.ToString());
+					dm.SetPref(nameof(idleOnScreensaver), value.ToString());
 				}
 			}
 		}
@@ -43,7 +43,7 @@ namespace PowerPlanManager
 				if (value != idleOnTimeout)
 				{
 					idleOnTimeout = value;
-					dm.SetPref("idleOnTimeout", value.ToString());
+					dm.SetPref(nameof(idleOnTimeout), value.ToString());
 				}
 			}
 		}
@@ -60,12 +60,12 @@ namespace PowerPlanManager
 				if (value != inputTimeout)
 				{
 					inputTimeout = value;
-					dm.SetPref("inputTimeout", value.ToString());
+					dm.SetPref(nameof(inputTimeout), value.ToString());
 				}
 			}
 		}
 
-		int pollingInterval = 10;
+		int pollingInterval = 2;
 		public int PollingInterval
 		{
 			get
@@ -77,27 +77,27 @@ namespace PowerPlanManager
 				if (value != pollingInterval)
 				{
 					pollingInterval = value;
-					dm.SetPref("pollingInterval", value.ToString());
+					dm.SetPref(nameof(pollingInterval), value.ToString());
 				}
 			}
 		}
 
-		bool manualHibernation = true;
-		public bool ManualHibernation
-		{
-			get
-			{
-				return manualHibernation;
-			}
-			set
-			{
-				if (value != manualHibernation)
-				{
-					manualHibernation = value;
-					dm.SetPref("manualHibernation", value.ToString());
-				}
-			}
-		}
+		//bool manualHibernation = true;
+		//public bool ManualHibernation
+		//{
+		//	get
+		//	{
+		//		return manualHibernation;
+		//	}
+		//	set
+		//	{
+		//		if (value != manualHibernation)
+		//		{
+		//			manualHibernation = value;
+		//			dm.SetPref("manualHibernation", value.ToString());
+		//		}
+		//	}
+		//}
 
 		List<string> balancedProcessNames = new List<string>();
 		List<string> performanceProcessNames = new List<string>();
@@ -197,7 +197,7 @@ namespace PowerPlanManager
 		{
 			idle = 0,
 			balanced = 1,
-			performance = 2,
+			boost = 2,
 		}
 
 		BackgroundWorker bw;
@@ -214,11 +214,11 @@ namespace PowerPlanManager
 			Debug.Log("initializing idle manager");
 
 			// load prefs
-			IdleOnScreensaver = dm.GetPref("idleOnScreensaver", idleOnScreensaver);
-			IdleOnTimeout = dm.GetPref("idleOnTimeout", idleOnTimeout);
-			InputTimeout = dm.GetPref("inputTimeout", inputTimeout);
-			PollingInterval = dm.GetPref("pollingInterval", pollingInterval);
-			ManualHibernation = dm.GetPref("manualHibernation", manualHibernation);
+			IdleOnScreensaver = dm.GetPref(nameof(idleOnScreensaver), idleOnScreensaver);
+			IdleOnTimeout = dm.GetPref(nameof(idleOnTimeout), idleOnTimeout);
+			InputTimeout = dm.GetPref(nameof(inputTimeout), inputTimeout);
+			PollingInterval = dm.GetPref(nameof(pollingInterval), pollingInterval);
+			//ManualHibernation = dm.GetPref("manualHibernation", manualHibernation);
 			RebuildProcessList();
 			
 			// init background worker and start
@@ -329,7 +329,7 @@ namespace PowerPlanManager
 #if DEBUG
 							Debug.Log("[DEBUG] polling update: Performance due to running process " + name);
 #endif
-							ApplyStatus(Status.performance, "\"" + name + "\" process running");
+							ApplyStatus(Status.boost, "\"" + name + "\" process running");
 							return;
 						}
 					}
@@ -387,24 +387,24 @@ namespace PowerPlanManager
 				}
 
 				// if currently idle
-				if (currentStatus == Status.idle)
-				{
-					if (ManualHibernation)
-					{
-						var idleTime = GetInputIdleTime();
-						if (idleTime.TotalMinutes >= ppm.HibernateTimeout)
-						{
-							// minimum time between hibernations
-                            if ((DateTime.Now - lastHibernationTime).TotalMinutes > ppm.HibernateTimeout)
-							{
-								// manually hibernate
-								Debug.Log("polling update: Hibernation time elapsed, triggering manual hibernation");
-								PowerPlansApiWrapper.SetSuspendState(true, true, true);
-								return;
-							}
-						}
-					}
-				}
+				//if (currentStatus == Status.idle)
+				//{
+				//	if (ManualHibernation)
+				//	{
+				//		var idleTime = GetInputIdleTime();
+				//		if (idleTime.TotalMinutes >= ppm.HibernateTimeout)
+				//		{
+				//			// minimum time between hibernations
+    //                        if ((DateTime.Now - lastHibernationTime).TotalMinutes > ppm.HibernateTimeout)
+				//			{
+				//				// manually hibernate
+				//				Debug.Log("polling update: Hibernation time elapsed, triggering manual hibernation");
+				//				PowerPlansApiWrapper.SetSuspendState(true, true, true);
+				//				return;
+				//			}
+				//		}
+				//	}
+				//}
 
 #if DEBUG
 				Debug.Log("[DEBUG] polling update: Balanced due to user input detected");

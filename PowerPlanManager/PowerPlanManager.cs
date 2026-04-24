@@ -51,50 +51,140 @@ namespace PowerPlanManager
 
 		#region properties
 
-		internal uint DisplayTimeout
+		internal uint DisplayTimeoutIdle
 		{
-			get => displayTimeout;
+			get => displayTimeoutIdle;
 			set 
 			{
-				if (value != displayTimeout)
+				if (value != displayTimeoutIdle)
 				{
 					if (value < 0) value = 0;
-					displayTimeout = value;
-					dm.SetPref("displayTimeout", value.ToString());
+					displayTimeoutIdle = value;
+					dm.SetPref(nameof(displayTimeoutIdle), value.ToString());
 					ApplySettingsToManagedPowerPlans();
 				}
 			}
 		}
 
-		internal uint SleepTimeout
+		internal uint DisplayTimeoutBalanced
 		{
-			get => sleepTimeout;
-			set
+			get => displayTimeoutBalanced;
+			set 
 			{
-				if (value != sleepTimeout)
+				if (value != displayTimeoutBalanced)
 				{
 					if (value < 0) value = 0;
-					sleepTimeout = value;
-					dm.SetPref("sleepTimeout", value.ToString());
+					displayTimeoutBalanced = value;
+					dm.SetPref(nameof(displayTimeoutBalanced), value.ToString());
 					ApplySettingsToManagedPowerPlans();
 				}
 			}
 		}
 
-		internal uint HibernateTimeout
+		internal uint DisplayTimeoutBoost
 		{
-			get => hibernateTimeout;
-			set
+			get => displayTimeoutBoost;
+			set 
 			{
-				if (value != hibernateTimeout)
+				if (value != displayTimeoutBoost)
 				{
 					if (value < 0) value = 0;
-					hibernateTimeout = value;
-					dm.SetPref("hibernateTimeout", value.ToString());
+					displayTimeoutBoost = value;
+					dm.SetPref(nameof(displayTimeoutBoost), value.ToString());
 					ApplySettingsToManagedPowerPlans();
 				}
 			}
 		}
+
+		internal uint SleepTimeoutIdle
+		{
+			get => sleepTimeoutIdle;
+			set
+			{
+				if (value != sleepTimeoutIdle)
+				{
+					if (value < 0) value = 0;
+					sleepTimeoutIdle = value;
+					dm.SetPref(nameof(sleepTimeoutIdle), value.ToString());
+					ApplySettingsToManagedPowerPlans();
+				}
+			}
+		}
+
+		internal uint SleepTimeoutBalanced
+		{
+			get => sleepTimeoutBalanced;
+			set
+			{
+				if (value != sleepTimeoutBalanced)
+				{
+					if (value < 0) value = 0;
+					sleepTimeoutBalanced = value;
+					dm.SetPref(nameof(sleepTimeoutBalanced), value.ToString());
+					ApplySettingsToManagedPowerPlans();
+				}
+			}
+		}
+		
+		internal uint SleepTimeoutBoost
+		{
+			get => sleepTimeoutBoost;
+			set
+			{
+				if (value != sleepTimeoutBoost)
+				{
+					if (value < 0) value = 0;
+					sleepTimeoutBoost = value;
+					dm.SetPref(nameof(sleepTimeoutBoost), value.ToString());
+					ApplySettingsToManagedPowerPlans();
+				}
+			}
+		}
+
+		//internal uint HibernateTimeoutIdle
+		//{
+		//	get => hibernateTimeoutIdle;
+		//	set
+		//	{
+		//		if (value != hibernateTimeoutIdle)
+		//		{
+		//			if (value < 0) value = 0;
+		//			hibernateTimeoutIdle = value;
+		//			dm.SetPref(nameof(hibernateTimeoutIdle), value.ToString());
+		//			ApplySettingsToManagedPowerPlans();
+		//		}
+		//	}
+		//}
+		
+		//internal uint HibernateTimeoutBalanced
+		//{
+		//	get => hibernateTimeoutBalanced;
+		//	set
+		//	{
+		//		if (value != hibernateTimeoutBalanced)
+		//		{
+		//			if (value < 0) value = 0;
+		//			hibernateTimeoutBalanced = value;
+		//			dm.SetPref(nameof(hibernateTimeoutBalanced), value.ToString());
+		//			ApplySettingsToManagedPowerPlans();
+		//		}
+		//	}
+		//}
+		
+		//internal uint HibernateTimeoutBoost
+		//{
+		//	get => hibernateTimeoutBoost;
+		//	set
+		//	{
+		//		if (value != hibernateTimeoutBoost)
+		//		{
+		//			if (value < 0) value = 0;
+		//			hibernateTimeoutBoost = value;
+		//			dm.SetPref(nameof(hibernateTimeoutBoost), value.ToString());
+		//			ApplySettingsToManagedPowerPlans();
+		//		}
+		//	}
+		//}
 
 		#endregion
 
@@ -105,25 +195,35 @@ namespace PowerPlanManager
 		//Power saver: a1841308-3541-4fab-bc81-f71556f20b4a
 		const string PowerPlanGuid_Balanced = "381b4222-f694-41f0-9685-ff5bb260df2e";
 		const string PowerPlanName_Balanced = "Balanced";
-		const string PowerPlanName_PPM_PowerSaver = "PPM_PowerSaver";
+		const string PowerPlanName_PPM_Idle = "PPM_Idle";
 		const string PowerPlanName_PPM_Balanced = "PPM_Balanced";
-		const string PowerPlanName_PPM_Performance = "PPM_Performance";
+		const string PowerPlanName_PPM_Boost = "PPM_Boost";
 
 		DataManager dm;
 
 		PowerPlanWrapper systemPlanBalanced = null;
-		PowerPlanWrapper managedPlanPowerSaver = null;
+		PowerPlanWrapper managedPlanIdle = null;
 		PowerPlanWrapper managedPlanBalanced = null;
-		PowerPlanWrapper managedPlanPerformance = null;
+		PowerPlanWrapper managedPlanBoost = null;
 		Dictionary<string, PowerPlanWrapper> otherPlans = new Dictionary<string, PowerPlanWrapper>();
 
-		PowerPlanWrapper selectedPlanPowerSaver = null;
+		PowerPlanWrapper selectedPlanIdle = null;
 		PowerPlanWrapper selectedPlanBalanced = null;
-		PowerPlanWrapper selectedPlanPerformance = null;
+		PowerPlanWrapper selectedPlanBoost = null;
 
-		uint displayTimeout = 15;
-		uint sleepTimeout = 30;
-		uint hibernateTimeout = 60;
+		uint displayTimeoutIdle = 15;
+		uint displayTimeoutBalanced = 15;
+		uint displayTimeoutBoost = 0;
+
+		uint sleepTimeoutIdle = 30;
+		uint sleepTimeoutBalanced = 0;
+		uint sleepTimeoutBoost = 0;
+
+		//uint hibernateTimeoutIdle = 60;
+		//uint hibernateTimeoutBalanced = 0;
+		//uint hibernateTimeoutBoost = 0;
+
+		const string askedToInstallPref = "askedToInstall_v2";
 
 		#endregion
 
@@ -136,14 +236,22 @@ namespace PowerPlanManager
 			ReadPowerPlans();
 
 			// read prefs
-			displayTimeout = dm.GetPref("displayTimeout", displayTimeout);
-			sleepTimeout = dm.GetPref("sleepTimeout", sleepTimeout);
-			hibernateTimeout = dm.GetPref("hibernateTimeout", hibernateTimeout);
+			displayTimeoutIdle = dm.GetPref(nameof(displayTimeoutIdle), displayTimeoutIdle);
+			displayTimeoutBalanced = dm.GetPref(nameof(displayTimeoutBalanced), displayTimeoutBalanced);
+			displayTimeoutBoost = dm.GetPref(nameof(displayTimeoutBoost), displayTimeoutBoost);
+
+			sleepTimeoutIdle = dm.GetPref(nameof(sleepTimeoutIdle), sleepTimeoutIdle);
+			sleepTimeoutBalanced = dm.GetPref(nameof(sleepTimeoutBalanced), sleepTimeoutBalanced);
+			sleepTimeoutBoost = dm.GetPref(nameof(sleepTimeoutBoost), sleepTimeoutBoost);
+
+			//hibernateTimeoutIdle = dm.GetPref(nameof(hibernateTimeoutIdle), hibernateTimeoutIdle);
+			//hibernateTimeoutBalanced = dm.GetPref(nameof(hibernateTimeoutBalanced), hibernateTimeoutBalanced);
+			//hibernateTimeoutBoost = dm.GetPref(nameof(hibernateTimeoutBoost), hibernateTimeoutBoost);
 
 			// read saved selected PowerPlans
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPowerSaver", PowerPlanName_PPM_PowerSaver), Status.idle, false);
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanBalanced", PowerPlanName_PPM_Balanced), Status.balanced, false);
-			SelectPowerPlanForStatus(dm.GetPref("selectedPowerPlanPerformance", PowerPlanName_PPM_Performance), Status.performance, false);
+			SelectPowerPlanForStatus(dm.GetPref(nameof(selectedPlanIdle), PowerPlanName_PPM_Idle), Status.idle, false);
+			SelectPowerPlanForStatus(dm.GetPref(nameof(selectedPlanBalanced), PowerPlanName_PPM_Balanced), Status.balanced, false);
+			SelectPowerPlanForStatus(dm.GetPref(nameof(selectedPlanBoost), PowerPlanName_PPM_Boost), Status.boost, false);
 		}
 
 		internal bool Initialize()
@@ -171,9 +279,9 @@ namespace PowerPlanManager
 			//Debug.Log("applying PowerPlan for status " + status);
 			switch (status)
 			{
-				case Status.idle: ApplyPowerPlan(selectedPlanPowerSaver); break;
+				case Status.idle: ApplyPowerPlan(selectedPlanIdle); break;
 				case Status.balanced: ApplyPowerPlan(selectedPlanBalanced); break;
-				case Status.performance: ApplyPowerPlan(selectedPlanPerformance); break;
+				case Status.boost: ApplyPowerPlan(selectedPlanBoost); break;
 			}
 		}
 
@@ -187,9 +295,9 @@ namespace PowerPlanManager
 			}
 
 			Add(systemPlanBalanced);
-			Add(managedPlanPowerSaver);
+			Add(managedPlanIdle);
 			Add(managedPlanBalanced);
-			Add(managedPlanPerformance);
+			Add(managedPlanBoost);
 			foreach (var v in otherPlans)
 			{
 				Add(v.Value);
@@ -202,9 +310,9 @@ namespace PowerPlanManager
 		{
 			switch (status)
 			{
-				case Status.idle: return selectedPlanPowerSaver?.name;
+				case Status.idle: return selectedPlanIdle?.name;
 				case Status.balanced: return selectedPlanBalanced?.name;
-				case Status.performance: return selectedPlanPerformance?.name;
+				case Status.boost: return selectedPlanBoost?.name;
 				default: throw new Exception();
 			}
 		}
@@ -222,16 +330,16 @@ namespace PowerPlanManager
 			switch (status)
 			{
 				case Status.idle:
-					selectedPlanPowerSaver = powerPlan;
-					if (save) dm.SetPref("selectedPowerPlanPowerSaver", name);
+					selectedPlanIdle = powerPlan;
+					if (save) dm.SetPref(nameof(selectedPlanIdle), name);
 					break;
 				case Status.balanced:
 					selectedPlanBalanced = powerPlan;
-					if (save) dm.SetPref("selectedPowerPlanBalanced", name);
+					if (save) dm.SetPref(nameof(selectedPlanBalanced), name);
 					break;
-				case Status.performance:
-					selectedPlanPerformance = powerPlan;
-					if (save) dm.SetPref("selectedPowerPlanPerformance", name);
+				case Status.boost:
+					selectedPlanBoost = powerPlan;
+					if (save) dm.SetPref(nameof(selectedPlanBoost), name);
 					break;
 				default: throw new Exception();
 			}
@@ -258,9 +366,9 @@ namespace PowerPlanManager
 				if (systemPlanBalanced == null && name.Equals(PowerPlanName_Balanced)) SetOrAddPowerPlan(ref systemPlanBalanced, plan, PowerPlanName_Balanced);
 
 				// try to find managed PowerPlans, if installed
-				if (managedPlanPowerSaver == null && name.Equals(PowerPlanName_PPM_PowerSaver)) SetOrAddPowerPlan(ref managedPlanPowerSaver, plan, PowerPlanName_PPM_PowerSaver);
+				if (managedPlanIdle == null && name.Equals(PowerPlanName_PPM_Idle)) SetOrAddPowerPlan(ref managedPlanIdle, plan, PowerPlanName_PPM_Idle);
 				if (managedPlanBalanced == null && name.Equals(PowerPlanName_PPM_Balanced)) SetOrAddPowerPlan(ref managedPlanBalanced, plan, PowerPlanName_PPM_Balanced);
-				if (managedPlanPerformance == null && name.Equals(PowerPlanName_PPM_Performance)) SetOrAddPowerPlan(ref managedPlanPerformance, plan, PowerPlanName_PPM_Performance);
+				if (managedPlanBoost == null && name.Equals(PowerPlanName_PPM_Boost)) SetOrAddPowerPlan(ref managedPlanBoost, plan, PowerPlanName_PPM_Boost);
 
 				// read all other PowerPlans
 				else
@@ -278,7 +386,7 @@ namespace PowerPlanManager
 
 		bool HasManagedPlansInstalled()
 		{
-			bool isInstalled = managedPlanPowerSaver != null && managedPlanBalanced != null && managedPlanPerformance != null;
+			bool isInstalled = managedPlanIdle != null && managedPlanBalanced != null && managedPlanBoost != null;
 			if (isInstalled) Debug.Log("managed PowerPlans already installed");
 			else Debug.Log("managed PowerPlans not installed");
 			return isInstalled;
@@ -288,7 +396,7 @@ namespace PowerPlanManager
 		{
 			Debug.Log("asking to install managed PowerPlans");
 
-			dm.SetPref("askedToInstall", true.ToString());
+			dm.SetPref(askedToInstallPref, true.ToString());
 			DialogResult dr = MessageBox.Show("Managed PowerPlans not installed. Install?", "", MessageBoxButtons.YesNo);
 			if (dr == System.Windows.Forms.DialogResult.Yes)
 			{
@@ -304,7 +412,7 @@ namespace PowerPlanManager
 
 		bool AskedToInstallManagedPlans()
 		{
-			bool alreadyAsked = dm.GetPref("askedToInstall") == true.ToString();
+			bool alreadyAsked = dm.GetPref(askedToInstallPref) == true.ToString();
 			if (alreadyAsked) Debug.Log("already asked to install managed PowerPlans, will not ask again");
 			return alreadyAsked;
 		}
@@ -325,33 +433,33 @@ namespace PowerPlanManager
 			IntPtr RetrPointer = IntPtr.Zero;
 
 			// duplicate managed plans from default balanced
-			if (managedPlanPowerSaver == null) DuplicatePowerPlan(systemPlanBalanced, PowerPlanName_PPM_PowerSaver);
+			if (managedPlanIdle == null) DuplicatePowerPlan(systemPlanBalanced, PowerPlanName_PPM_Idle);
 			if (managedPlanBalanced == null) DuplicatePowerPlan(systemPlanBalanced, PowerPlanName_PPM_Balanced);
-			if (managedPlanPerformance == null) DuplicatePowerPlan(systemPlanBalanced, PowerPlanName_PPM_Performance);
+			if (managedPlanBoost == null) DuplicatePowerPlan(systemPlanBalanced, PowerPlanName_PPM_Boost);
 
 			// apply default settings to managed plans if they exists
 			ApplySettingsToManagedPowerPlans();
 
 			// select managed plans
 			Debug.Log("selecting managed PowerPlans");
-			selectedPlanPowerSaver = managedPlanPowerSaver;
+			selectedPlanIdle = managedPlanIdle;
 			selectedPlanBalanced = managedPlanBalanced;
-			selectedPlanPerformance = managedPlanPerformance;
+			selectedPlanBoost = managedPlanBoost;
 		}
 
 		void UninstallManagedPlans()
 		{
 			// TODO check if in use
-			if (managedPlanPowerSaver != null) PowerPlansApiWrapper.DeletePlan(managedPlanPowerSaver.guid);
+			if (managedPlanIdle != null) PowerPlansApiWrapper.DeletePlan(managedPlanIdle.guid);
 			if (managedPlanBalanced != null) PowerPlansApiWrapper.DeletePlan(managedPlanBalanced.guid);
-			if (managedPlanPerformance != null) PowerPlansApiWrapper.DeletePlan(managedPlanPerformance.guid);
+			if (managedPlanBoost != null) PowerPlansApiWrapper.DeletePlan(managedPlanBoost.guid);
 		}
 
 		void ApplySettingsToManagedPowerPlans()
 		{
-			if (managedPlanPowerSaver != null) ApplySettingsToPowerPlan(managedPlanPowerSaver, ProcessorBoostModes.disabled, displayTimeout, sleepTimeout, hibernateTimeout, 50);
-			if (managedPlanBalanced != null) ApplySettingsToPowerPlan(managedPlanBalanced, ProcessorBoostModes.disabled, displayTimeout, 0, 0, 100);
-			if (managedPlanPerformance != null) ApplySettingsToPowerPlan(managedPlanPerformance, ProcessorBoostModes.enabled, 0, 0, 0, 100);
+			if (managedPlanIdle != null) ApplySettingsToPowerPlan(managedPlanIdle, ProcessorBoostModes.disabled, displayTimeoutIdle, sleepTimeoutIdle, 0, 30);
+			if (managedPlanBalanced != null) ApplySettingsToPowerPlan(managedPlanBalanced, ProcessorBoostModes.disabled, displayTimeoutBalanced, sleepTimeoutBalanced, 0, 100);
+			if (managedPlanBoost != null) ApplySettingsToPowerPlan(managedPlanBoost, ProcessorBoostModes.enabled, displayTimeoutBoost, sleepTimeoutBoost, 0, 100);
 		}
 
 		void ApplySettingsToPowerPlan(PowerPlanWrapper pp, ProcessorBoostModes boostMode, uint screenTimeout, uint sleepTimeout, uint hibernateTimeout, uint maxProcThrottle)
@@ -408,9 +516,9 @@ namespace PowerPlanManager
 		PowerPlanWrapper GetPowerPlanWithName(string name)
 		{
 			if (name.Equals(PowerPlanName_Balanced) && systemPlanBalanced != null) return systemPlanBalanced;
-			else if (name.Equals(PowerPlanName_PPM_PowerSaver) && managedPlanPowerSaver != null) return managedPlanPowerSaver;
+			else if (name.Equals(PowerPlanName_PPM_Idle) && managedPlanIdle != null) return managedPlanIdle;
 			else if (name.Equals(PowerPlanName_PPM_Balanced) && managedPlanBalanced != null) return managedPlanBalanced;
-			else if (name.Equals(PowerPlanName_PPM_Performance) && managedPlanPerformance != null) return managedPlanPerformance;
+			else if (name.Equals(PowerPlanName_PPM_Boost) && managedPlanBoost != null) return managedPlanBoost;
 			else
 			{
 				if (otherPlans.ContainsKey(name)) return otherPlans[name];
