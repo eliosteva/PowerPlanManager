@@ -63,8 +63,6 @@ namespace PowerPlanManager
 			this.buttonBalanced = new System.Windows.Forms.Button();
 			this.buttonPerformance = new System.Windows.Forms.Button();
 			this.label11 = new System.Windows.Forms.Label();
-			this.label10 = new System.Windows.Forms.Label();
-			this.groupBox1 = new System.Windows.Forms.GroupBox();
 			this.buttonApplyBalancedPowerMode = new System.Windows.Forms.Button();
 			this.groupBox2 = new System.Windows.Forms.GroupBox();
 			this.groupBox3 = new System.Windows.Forms.GroupBox();
@@ -72,19 +70,24 @@ namespace PowerPlanManager
 			this.label16 = new System.Windows.Forms.Label();
 			this.label12 = new System.Windows.Forms.Label();
 			this.displayTimeoutBalanced = new System.Windows.Forms.NumericUpDown();
-			this.label14 = new System.Windows.Forms.Label();
 			this.groupBox4 = new System.Windows.Forms.GroupBox();
 			this.sleepTimeoutBoost = new System.Windows.Forms.NumericUpDown();
 			this.label17 = new System.Windows.Forms.Label();
 			this.label13 = new System.Windows.Forms.Label();
 			this.displayTimeoutBoost = new System.Windows.Forms.NumericUpDown();
-			this.label15 = new System.Windows.Forms.Label();
+			this.label3 = new System.Windows.Forms.Label();
+			this.labelReason = new System.Windows.Forms.Label();
+			this.label18 = new System.Windows.Forms.Label();
+			this.labelCurrentPowerPlan = new System.Windows.Forms.Label();
+			this.label20 = new System.Windows.Forms.Label();
+			this.labelCurrentPowerMode = new System.Windows.Forms.Label();
+			this.label22 = new System.Windows.Forms.Label();
+			this.label23 = new System.Windows.Forms.Label();
 			((System.ComponentModel.ISupportInitialize)(this.inputTimeout)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.pollingInterval)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.sleepTimeoutIdle)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.displayTimeoutIdle)).BeginInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBoxStatus)).BeginInit();
-			this.groupBox1.SuspendLayout();
 			this.groupBox2.SuspendLayout();
 			this.groupBox3.SuspendLayout();
 			((System.ComponentModel.ISupportInitialize)(this.sleepTimeoutBalanced)).BeginInit();
@@ -97,18 +100,18 @@ namespace PowerPlanManager
 			// label4
 			// 
 			this.label4.BackColor = System.Drawing.SystemColors.Control;
-			this.label4.Location = new System.Drawing.Point(6, 128);
+			this.label4.Location = new System.Drawing.Point(12, 418);
 			this.label4.Name = "label4";
-			this.label4.Size = new System.Drawing.Size(219, 21);
+			this.label4.Size = new System.Drawing.Size(150, 25);
 			this.label4.TabIndex = 6;
 			this.label4.Text = "Idle from Screensaver:";
 			this.label4.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// toggleAutoStart
 			// 
-			this.toggleAutoStart.Location = new System.Drawing.Point(231, 16);
+			this.toggleAutoStart.Location = new System.Drawing.Point(168, 318);
 			this.toggleAutoStart.Name = "toggleAutoStart";
-			this.toggleAutoStart.Size = new System.Drawing.Size(21, 21);
+			this.toggleAutoStart.Size = new System.Drawing.Size(25, 25);
 			this.toggleAutoStart.TabIndex = 11;
 			this.toggleAutoStart.UseVisualStyleBackColor = false;
 			this.toggleAutoStart.CheckedChanged += new System.EventHandler(this.toggleAutoStart_CheckedChanged);
@@ -116,9 +119,9 @@ namespace PowerPlanManager
 			// label6
 			// 
 			this.label6.BackColor = System.Drawing.SystemColors.Control;
-			this.label6.Location = new System.Drawing.Point(6, 16);
+			this.label6.Location = new System.Drawing.Point(12, 318);
 			this.label6.Name = "label6";
-			this.label6.Size = new System.Drawing.Size(219, 21);
+			this.label6.Size = new System.Drawing.Size(150, 25);
 			this.label6.TabIndex = 16;
 			this.label6.Text = "Start with windows:";
 			this.label6.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -126,26 +129,26 @@ namespace PowerPlanManager
 			// label8
 			// 
 			this.label8.BackColor = System.Drawing.SystemColors.Control;
-			this.label8.Location = new System.Drawing.Point(6, 101);
+			this.label8.Location = new System.Drawing.Point(12, 368);
 			this.label8.Name = "label8";
-			this.label8.Size = new System.Drawing.Size(219, 21);
+			this.label8.Size = new System.Drawing.Size(150, 25);
 			this.label8.TabIndex = 18;
-			this.label8.Text = "Idle from user input:";
+			this.label8.Text = "Detect user input:";
 			this.label8.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label9
 			// 
 			this.label9.BackColor = System.Drawing.SystemColors.Control;
-			this.label9.Location = new System.Drawing.Point(6, 67);
+			this.label9.Location = new System.Drawing.Point(12, 393);
 			this.label9.Name = "label9";
-			this.label9.Size = new System.Drawing.Size(219, 20);
+			this.label9.Size = new System.Drawing.Size(150, 25);
 			this.label9.TabIndex = 19;
-			this.label9.Text = "User input timeout (sec):";
+			this.label9.Text = "Idle timeout (sec):";
 			this.label9.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// inputTimeout
 			// 
-			this.inputTimeout.Location = new System.Drawing.Point(231, 67);
+			this.inputTimeout.Location = new System.Drawing.Point(168, 397);
 			this.inputTimeout.Maximum = new decimal(new int[] {
             600,
             0,
@@ -168,18 +171,18 @@ namespace PowerPlanManager
 			// 
 			// toggleIdleOnTimeout
 			// 
-			this.toggleIdleOnTimeout.Location = new System.Drawing.Point(231, 101);
+			this.toggleIdleOnTimeout.Location = new System.Drawing.Point(168, 368);
 			this.toggleIdleOnTimeout.Name = "toggleIdleOnTimeout";
-			this.toggleIdleOnTimeout.Size = new System.Drawing.Size(21, 21);
+			this.toggleIdleOnTimeout.Size = new System.Drawing.Size(25, 25);
 			this.toggleIdleOnTimeout.TabIndex = 23;
 			this.toggleIdleOnTimeout.UseVisualStyleBackColor = true;
 			this.toggleIdleOnTimeout.CheckedChanged += new System.EventHandler(this.toggleIdleOnTimeout_CheckedChanged);
 			// 
 			// toggleIdleOnScreensaver
 			// 
-			this.toggleIdleOnScreensaver.Location = new System.Drawing.Point(231, 128);
+			this.toggleIdleOnScreensaver.Location = new System.Drawing.Point(168, 419);
 			this.toggleIdleOnScreensaver.Name = "toggleIdleOnScreensaver";
-			this.toggleIdleOnScreensaver.Size = new System.Drawing.Size(21, 21);
+			this.toggleIdleOnScreensaver.Size = new System.Drawing.Size(25, 25);
 			this.toggleIdleOnScreensaver.TabIndex = 24;
 			this.toggleIdleOnScreensaver.UseVisualStyleBackColor = true;
 			this.toggleIdleOnScreensaver.CheckedChanged += new System.EventHandler(this.toggleIdleOnScreensaver_CheckedChanged);
@@ -187,16 +190,16 @@ namespace PowerPlanManager
 			// label5
 			// 
 			this.label5.BackColor = System.Drawing.SystemColors.Control;
-			this.label5.Location = new System.Drawing.Point(6, 40);
+			this.label5.Location = new System.Drawing.Point(12, 343);
 			this.label5.Name = "label5";
-			this.label5.Size = new System.Drawing.Size(219, 21);
+			this.label5.Size = new System.Drawing.Size(150, 25);
 			this.label5.TabIndex = 28;
 			this.label5.Text = "Polling interval (sec):";
 			this.label5.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// pollingInterval
 			// 
-			this.pollingInterval.Location = new System.Drawing.Point(231, 40);
+			this.pollingInterval.Location = new System.Drawing.Point(168, 347);
 			this.pollingInterval.Maximum = new decimal(new int[] {
             600,
             0,
@@ -219,21 +222,19 @@ namespace PowerPlanManager
 			// 
 			// buttonRefreshPowerModes
 			// 
-			this.buttonRefreshPowerModes.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonRefreshPowerModes.Location = new System.Drawing.Point(772, 12);
+			this.buttonRefreshPowerModes.Location = new System.Drawing.Point(12, 446);
 			this.buttonRefreshPowerModes.Name = "buttonRefreshPowerModes";
-			this.buttonRefreshPowerModes.Size = new System.Drawing.Size(94, 30);
+			this.buttonRefreshPowerModes.Size = new System.Drawing.Size(303, 30);
 			this.buttonRefreshPowerModes.TabIndex = 43;
-			this.buttonRefreshPowerModes.Text = "Refresh";
+			this.buttonRefreshPowerModes.Text = "Refresh Window";
 			this.buttonRefreshPowerModes.UseVisualStyleBackColor = true;
 			this.buttonRefreshPowerModes.Click += new System.EventHandler(this.buttonRefreshPowerModes_Click);
 			// 
 			// buttonQuit
 			// 
-			this.buttonQuit.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonQuit.Location = new System.Drawing.Point(872, 12);
+			this.buttonQuit.Location = new System.Drawing.Point(12, 482);
 			this.buttonQuit.Name = "buttonQuit";
-			this.buttonQuit.Size = new System.Drawing.Size(94, 30);
+			this.buttonQuit.Size = new System.Drawing.Size(303, 30);
 			this.buttonQuit.TabIndex = 37;
 			this.buttonQuit.Text = "Quit";
 			this.buttonQuit.UseVisualStyleBackColor = true;
@@ -241,7 +242,7 @@ namespace PowerPlanManager
 			// 
 			// sleepTimeoutIdle
 			// 
-			this.sleepTimeoutIdle.Location = new System.Drawing.Point(231, 435);
+			this.sleepTimeoutIdle.Location = new System.Drawing.Point(231, 477);
 			this.sleepTimeoutIdle.Maximum = new decimal(new int[] {
             300,
             0,
@@ -260,16 +261,16 @@ namespace PowerPlanManager
 			// label2
 			// 
 			this.label2.BackColor = System.Drawing.SystemColors.Control;
-			this.label2.Location = new System.Drawing.Point(6, 437);
+			this.label2.Location = new System.Drawing.Point(6, 472);
 			this.label2.Name = "label2";
-			this.label2.Size = new System.Drawing.Size(219, 20);
+			this.label2.Size = new System.Drawing.Size(200, 25);
 			this.label2.TabIndex = 32;
-			this.label2.Text = "Sleep timeout (min):";
+			this.label2.Text = "Sleep after (min):";
 			this.label2.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// displayTimeoutIdle
 			// 
-			this.displayTimeoutIdle.Location = new System.Drawing.Point(231, 409);
+			this.displayTimeoutIdle.Location = new System.Drawing.Point(231, 451);
 			this.displayTimeoutIdle.Maximum = new decimal(new int[] {
             300,
             0,
@@ -288,18 +289,18 @@ namespace PowerPlanManager
 			// label1
 			// 
 			this.label1.BackColor = System.Drawing.SystemColors.Control;
-			this.label1.Location = new System.Drawing.Point(6, 409);
+			this.label1.Location = new System.Drawing.Point(6, 447);
 			this.label1.Name = "label1";
-			this.label1.Size = new System.Drawing.Size(219, 20);
+			this.label1.Size = new System.Drawing.Size(200, 25);
 			this.label1.TabIndex = 30;
-			this.label1.Text = "Display timeout (min):";
+			this.label1.Text = "Turn off display after (min):";
 			this.label1.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// labelStatus
 			// 
-			this.labelStatus.Location = new System.Drawing.Point(303, 17);
+			this.labelStatus.Location = new System.Drawing.Point(199, 157);
 			this.labelStatus.Name = "labelStatus";
-			this.labelStatus.Size = new System.Drawing.Size(476, 20);
+			this.labelStatus.Size = new System.Drawing.Size(116, 25);
 			this.labelStatus.TabIndex = 44;
 			this.labelStatus.Text = "IDLE";
 			this.labelStatus.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
@@ -308,9 +309,9 @@ namespace PowerPlanManager
 			// 
 			this.pictureBoxStatus.Image = ((System.Drawing.Image)(resources.GetObject("pictureBoxStatus.Image")));
 			this.pictureBoxStatus.InitialImage = ((System.Drawing.Image)(resources.GetObject("pictureBoxStatus.InitialImage")));
-			this.pictureBoxStatus.Location = new System.Drawing.Point(277, 17);
+			this.pictureBoxStatus.Location = new System.Drawing.Point(168, 157);
 			this.pictureBoxStatus.Name = "pictureBoxStatus";
-			this.pictureBoxStatus.Size = new System.Drawing.Size(20, 20);
+			this.pictureBoxStatus.Size = new System.Drawing.Size(25, 25);
 			this.pictureBoxStatus.SizeMode = System.Windows.Forms.PictureBoxSizeMode.StretchImage;
 			this.pictureBoxStatus.TabIndex = 45;
 			this.pictureBoxStatus.TabStop = false;
@@ -318,21 +319,21 @@ namespace PowerPlanManager
 			// listBoxBalanced
 			// 
 			this.listBoxBalanced.FormattingEnabled = true;
-			this.listBoxBalanced.Location = new System.Drawing.Point(6, 65);
+			this.listBoxBalanced.Location = new System.Drawing.Point(5, 45);
 			this.listBoxBalanced.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxBalanced.Name = "listBoxBalanced";
 			this.listBoxBalanced.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-			this.listBoxBalanced.Size = new System.Drawing.Size(273, 290);
+			this.listBoxBalanced.Size = new System.Drawing.Size(275, 394);
 			this.listBoxBalanced.TabIndex = 46;
 			// 
 			// listBoxPerformance
 			// 
 			this.listBoxPerformance.FormattingEnabled = true;
-			this.listBoxPerformance.Location = new System.Drawing.Point(6, 65);
+			this.listBoxPerformance.Location = new System.Drawing.Point(5, 45);
 			this.listBoxPerformance.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxPerformance.Name = "listBoxPerformance";
 			this.listBoxPerformance.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-			this.listBoxPerformance.Size = new System.Drawing.Size(273, 290);
+			this.listBoxPerformance.Size = new System.Drawing.Size(275, 394);
 			this.listBoxPerformance.TabIndex = 46;
 			// 
 			// listBoxIdle
@@ -340,16 +341,16 @@ namespace PowerPlanManager
 			this.listBoxIdle.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.listBoxIdle.FormattingEnabled = true;
-			this.listBoxIdle.Location = new System.Drawing.Point(5, 65);
+			this.listBoxIdle.Location = new System.Drawing.Point(5, 45);
 			this.listBoxIdle.Margin = new System.Windows.Forms.Padding(2);
 			this.listBoxIdle.Name = "listBoxIdle";
 			this.listBoxIdle.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-			this.listBoxIdle.Size = new System.Drawing.Size(274, 290);
+			this.listBoxIdle.Size = new System.Drawing.Size(275, 394);
 			this.listBoxIdle.TabIndex = 46;
 			// 
 			// buttonIdleToBalanced
 			// 
-			this.buttonIdleToBalanced.Location = new System.Drawing.Point(306, 113);
+			this.buttonIdleToBalanced.Location = new System.Drawing.Point(660, 77);
 			this.buttonIdleToBalanced.Margin = new System.Windows.Forms.Padding(2);
 			this.buttonIdleToBalanced.Name = "buttonIdleToBalanced";
 			this.buttonIdleToBalanced.Size = new System.Drawing.Size(37, 83);
@@ -360,7 +361,7 @@ namespace PowerPlanManager
 			// 
 			// buttonBalancedToIdle
 			// 
-			this.buttonBalancedToIdle.Location = new System.Drawing.Point(306, 310);
+			this.buttonBalancedToIdle.Location = new System.Drawing.Point(660, 274);
 			this.buttonBalancedToIdle.Margin = new System.Windows.Forms.Padding(2);
 			this.buttonBalancedToIdle.Name = "buttonBalancedToIdle";
 			this.buttonBalancedToIdle.Size = new System.Drawing.Size(37, 89);
@@ -371,7 +372,7 @@ namespace PowerPlanManager
 			// 
 			// buttonBalancedToPerf
 			// 
-			this.buttonBalancedToPerf.Location = new System.Drawing.Point(638, 113);
+			this.buttonBalancedToPerf.Location = new System.Drawing.Point(992, 77);
 			this.buttonBalancedToPerf.Margin = new System.Windows.Forms.Padding(2);
 			this.buttonBalancedToPerf.Name = "buttonBalancedToPerf";
 			this.buttonBalancedToPerf.Size = new System.Drawing.Size(37, 83);
@@ -382,7 +383,7 @@ namespace PowerPlanManager
 			// 
 			// buttonPerfToBalanced
 			// 
-			this.buttonPerfToBalanced.Location = new System.Drawing.Point(638, 314);
+			this.buttonPerfToBalanced.Location = new System.Drawing.Point(992, 278);
 			this.buttonPerfToBalanced.Margin = new System.Windows.Forms.Padding(2);
 			this.buttonPerfToBalanced.Name = "buttonPerfToBalanced";
 			this.buttonPerfToBalanced.Size = new System.Drawing.Size(37, 89);
@@ -396,7 +397,7 @@ namespace PowerPlanManager
 			this.cmbPowerPlanPerformance.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.cmbPowerPlanPerformance.FormattingEnabled = true;
-			this.cmbPowerPlanPerformance.Location = new System.Drawing.Point(6, 384);
+			this.cmbPowerPlanPerformance.Location = new System.Drawing.Point(6, 19);
 			this.cmbPowerPlanPerformance.Name = "cmbPowerPlanPerformance";
 			this.cmbPowerPlanPerformance.Size = new System.Drawing.Size(273, 21);
 			this.cmbPowerPlanPerformance.TabIndex = 58;
@@ -407,18 +408,18 @@ namespace PowerPlanManager
 			this.cmbPowerPlanBalanced.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
             | System.Windows.Forms.AnchorStyles.Right)));
 			this.cmbPowerPlanBalanced.FormattingEnabled = true;
-			this.cmbPowerPlanBalanced.Location = new System.Drawing.Point(9, 384);
+			this.cmbPowerPlanBalanced.Location = new System.Drawing.Point(5, 19);
 			this.cmbPowerPlanBalanced.Name = "cmbPowerPlanBalanced";
-			this.cmbPowerPlanBalanced.Size = new System.Drawing.Size(270, 21);
+			this.cmbPowerPlanBalanced.Size = new System.Drawing.Size(274, 21);
 			this.cmbPowerPlanBalanced.TabIndex = 57;
 			this.cmbPowerPlanBalanced.SelectedIndexChanged += new System.EventHandler(this.cmbPowerPlanBalanced_SelectedIndexChanged);
 			// 
 			// cmbPowerPlanIdle
 			// 
 			this.cmbPowerPlanIdle.FormattingEnabled = true;
-			this.cmbPowerPlanIdle.Location = new System.Drawing.Point(6, 384);
+			this.cmbPowerPlanIdle.Location = new System.Drawing.Point(5, 19);
 			this.cmbPowerPlanIdle.Name = "cmbPowerPlanIdle";
-			this.cmbPowerPlanIdle.Size = new System.Drawing.Size(274, 21);
+			this.cmbPowerPlanIdle.Size = new System.Drawing.Size(275, 21);
 			this.cmbPowerPlanIdle.TabIndex = 56;
 			this.cmbPowerPlanIdle.SelectedIndexChanged += new System.EventHandler(this.cmbPowerPlanIdle_SelectedIndexChanged);
 			// 
@@ -427,7 +428,7 @@ namespace PowerPlanManager
 			this.buttonAuto.BackColor = System.Drawing.SystemColors.Highlight;
 			this.buttonAuto.Location = new System.Drawing.Point(12, 12);
 			this.buttonAuto.Name = "buttonAuto";
-			this.buttonAuto.Size = new System.Drawing.Size(149, 30);
+			this.buttonAuto.Size = new System.Drawing.Size(303, 30);
 			this.buttonAuto.TabIndex = 53;
 			this.buttonAuto.Text = "Auto";
 			this.buttonAuto.UseVisualStyleBackColor = false;
@@ -435,11 +436,9 @@ namespace PowerPlanManager
 			// 
 			// buttonPowerSaver
 			// 
-			this.buttonPowerSaver.Anchor = ((System.Windows.Forms.AnchorStyles)(((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Left) 
-            | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonPowerSaver.Location = new System.Drawing.Point(6, 19);
+			this.buttonPowerSaver.Location = new System.Drawing.Point(12, 48);
 			this.buttonPowerSaver.Name = "buttonPowerSaver";
-			this.buttonPowerSaver.Size = new System.Drawing.Size(273, 41);
+			this.buttonPowerSaver.Size = new System.Drawing.Size(303, 30);
 			this.buttonPowerSaver.TabIndex = 54;
 			this.buttonPowerSaver.Text = "Force Idle";
 			this.buttonPowerSaver.UseVisualStyleBackColor = true;
@@ -447,9 +446,9 @@ namespace PowerPlanManager
 			// 
 			// buttonBalanced
 			// 
-			this.buttonBalanced.Location = new System.Drawing.Point(6, 19);
+			this.buttonBalanced.Location = new System.Drawing.Point(12, 85);
 			this.buttonBalanced.Name = "buttonBalanced";
-			this.buttonBalanced.Size = new System.Drawing.Size(273, 41);
+			this.buttonBalanced.Size = new System.Drawing.Size(303, 30);
 			this.buttonBalanced.TabIndex = 55;
 			this.buttonBalanced.Text = "Force Balanced";
 			this.buttonBalanced.UseVisualStyleBackColor = true;
@@ -457,9 +456,9 @@ namespace PowerPlanManager
 			// 
 			// buttonPerformance
 			// 
-			this.buttonPerformance.Location = new System.Drawing.Point(6, 19);
+			this.buttonPerformance.Location = new System.Drawing.Point(12, 121);
 			this.buttonPerformance.Name = "buttonPerformance";
-			this.buttonPerformance.Size = new System.Drawing.Size(273, 41);
+			this.buttonPerformance.Size = new System.Drawing.Size(303, 30);
 			this.buttonPerformance.TabIndex = 56;
 			this.buttonPerformance.Text = "Force Performance";
 			this.buttonPerformance.UseVisualStyleBackColor = true;
@@ -467,50 +466,20 @@ namespace PowerPlanManager
 			// 
 			// label11
 			// 
-			this.label11.Location = new System.Drawing.Point(167, 17);
+			this.label11.Location = new System.Drawing.Point(12, 157);
 			this.label11.Name = "label11";
-			this.label11.Size = new System.Drawing.Size(104, 20);
+			this.label11.Size = new System.Drawing.Size(150, 25);
 			this.label11.TabIndex = 61;
 			this.label11.Text = "Current status:";
 			this.label11.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
-			// label10
-			// 
-			this.label10.BackColor = System.Drawing.SystemColors.Control;
-			this.label10.Location = new System.Drawing.Point(6, 357);
-			this.label10.Name = "label10";
-			this.label10.Size = new System.Drawing.Size(219, 21);
-			this.label10.TabIndex = 63;
-			this.label10.Text = "Idle PowerPlan:";
-			this.label10.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			// 
-			// groupBox1
-			// 
-			this.groupBox1.Controls.Add(this.label9);
-			this.groupBox1.Controls.Add(this.label5);
-			this.groupBox1.Controls.Add(this.pollingInterval);
-			this.groupBox1.Controls.Add(this.label8);
-			this.groupBox1.Controls.Add(this.toggleIdleOnScreensaver);
-			this.groupBox1.Controls.Add(this.inputTimeout);
-			this.groupBox1.Controls.Add(this.toggleIdleOnTimeout);
-			this.groupBox1.Controls.Add(this.label4);
-			this.groupBox1.Controls.Add(this.label6);
-			this.groupBox1.Controls.Add(this.toggleAutoStart);
-			this.groupBox1.Location = new System.Drawing.Point(12, 521);
-			this.groupBox1.Name = "groupBox1";
-			this.groupBox1.Size = new System.Drawing.Size(954, 162);
-			this.groupBox1.TabIndex = 64;
-			this.groupBox1.TabStop = false;
-			this.groupBox1.Text = "Options";
-			// 
 			// buttonApplyBalancedPowerMode
 			// 
-			this.buttonApplyBalancedPowerMode.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Top | System.Windows.Forms.AnchorStyles.Right)));
-			this.buttonApplyBalancedPowerMode.Location = new System.Drawing.Point(643, 12);
+			this.buttonApplyBalancedPowerMode.Location = new System.Drawing.Point(12, 260);
 			this.buttonApplyBalancedPowerMode.Name = "buttonApplyBalancedPowerMode";
-			this.buttonApplyBalancedPowerMode.Size = new System.Drawing.Size(123, 30);
+			this.buttonApplyBalancedPowerMode.Size = new System.Drawing.Size(303, 30);
 			this.buttonApplyBalancedPowerMode.TabIndex = 65;
-			this.buttonApplyBalancedPowerMode.Text = "Reset Power Mode";
+			this.buttonApplyBalancedPowerMode.Text = "Set PowerMode Balanced";
 			this.buttonApplyBalancedPowerMode.UseVisualStyleBackColor = true;
 			this.buttonApplyBalancedPowerMode.Click += new System.EventHandler(this.buttonApplyBalancedPowerMode_Click);
 			// 
@@ -518,15 +487,13 @@ namespace PowerPlanManager
 			// 
 			this.groupBox2.Controls.Add(this.listBoxIdle);
 			this.groupBox2.Controls.Add(this.label1);
-			this.groupBox2.Controls.Add(this.buttonPowerSaver);
 			this.groupBox2.Controls.Add(this.displayTimeoutIdle);
 			this.groupBox2.Controls.Add(this.cmbPowerPlanIdle);
-			this.groupBox2.Controls.Add(this.label10);
 			this.groupBox2.Controls.Add(this.sleepTimeoutIdle);
 			this.groupBox2.Controls.Add(this.label2);
-			this.groupBox2.Location = new System.Drawing.Point(12, 48);
+			this.groupBox2.Location = new System.Drawing.Point(366, 12);
 			this.groupBox2.Name = "groupBox2";
-			this.groupBox2.Size = new System.Drawing.Size(285, 467);
+			this.groupBox2.Size = new System.Drawing.Size(285, 500);
 			this.groupBox2.TabIndex = 66;
 			this.groupBox2.TabStop = false;
 			this.groupBox2.Text = "Idle";
@@ -538,19 +505,17 @@ namespace PowerPlanManager
 			this.groupBox3.Controls.Add(this.label12);
 			this.groupBox3.Controls.Add(this.displayTimeoutBalanced);
 			this.groupBox3.Controls.Add(this.listBoxBalanced);
-			this.groupBox3.Controls.Add(this.buttonBalanced);
-			this.groupBox3.Controls.Add(this.label14);
 			this.groupBox3.Controls.Add(this.cmbPowerPlanBalanced);
-			this.groupBox3.Location = new System.Drawing.Point(348, 48);
+			this.groupBox3.Location = new System.Drawing.Point(702, 12);
 			this.groupBox3.Name = "groupBox3";
-			this.groupBox3.Size = new System.Drawing.Size(285, 467);
+			this.groupBox3.Size = new System.Drawing.Size(285, 500);
 			this.groupBox3.TabIndex = 67;
 			this.groupBox3.TabStop = false;
 			this.groupBox3.Text = "Balanced";
 			// 
 			// sleepTimeoutBalanced
 			// 
-			this.sleepTimeoutBalanced.Location = new System.Drawing.Point(231, 435);
+			this.sleepTimeoutBalanced.Location = new System.Drawing.Point(231, 477);
 			this.sleepTimeoutBalanced.Maximum = new decimal(new int[] {
             300,
             0,
@@ -569,26 +534,26 @@ namespace PowerPlanManager
 			// label16
 			// 
 			this.label16.BackColor = System.Drawing.SystemColors.Control;
-			this.label16.Location = new System.Drawing.Point(6, 437);
+			this.label16.Location = new System.Drawing.Point(6, 470);
 			this.label16.Name = "label16";
-			this.label16.Size = new System.Drawing.Size(219, 20);
+			this.label16.Size = new System.Drawing.Size(200, 25);
 			this.label16.TabIndex = 64;
-			this.label16.Text = "Sleep timeout (min):";
+			this.label16.Text = "Sleep after (min):";
 			this.label16.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label12
 			// 
 			this.label12.BackColor = System.Drawing.SystemColors.Control;
-			this.label12.Location = new System.Drawing.Point(6, 409);
+			this.label12.Location = new System.Drawing.Point(6, 445);
 			this.label12.Name = "label12";
-			this.label12.Size = new System.Drawing.Size(219, 20);
+			this.label12.Size = new System.Drawing.Size(200, 25);
 			this.label12.TabIndex = 64;
-			this.label12.Text = "Display timeout (min):";
+			this.label12.Text = "Turn off display after (min):";
 			this.label12.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// displayTimeoutBalanced
 			// 
-			this.displayTimeoutBalanced.Location = new System.Drawing.Point(231, 409);
+			this.displayTimeoutBalanced.Location = new System.Drawing.Point(231, 451);
 			this.displayTimeoutBalanced.Maximum = new decimal(new int[] {
             300,
             0,
@@ -604,16 +569,6 @@ namespace PowerPlanManager
             0});
 			this.displayTimeoutBalanced.ValueChanged += new System.EventHandler(this.displayTimeoutBalanced_ValueChanged);
 			// 
-			// label14
-			// 
-			this.label14.BackColor = System.Drawing.SystemColors.Control;
-			this.label14.Location = new System.Drawing.Point(6, 357);
-			this.label14.Name = "label14";
-			this.label14.Size = new System.Drawing.Size(219, 21);
-			this.label14.TabIndex = 63;
-			this.label14.Text = "Balanced PowerPlan:";
-			this.label14.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
-			// 
 			// groupBox4
 			// 
 			this.groupBox4.Controls.Add(this.sleepTimeoutBoost);
@@ -621,19 +576,17 @@ namespace PowerPlanManager
 			this.groupBox4.Controls.Add(this.label13);
 			this.groupBox4.Controls.Add(this.displayTimeoutBoost);
 			this.groupBox4.Controls.Add(this.listBoxPerformance);
-			this.groupBox4.Controls.Add(this.buttonPerformance);
-			this.groupBox4.Controls.Add(this.label15);
 			this.groupBox4.Controls.Add(this.cmbPowerPlanPerformance);
-			this.groupBox4.Location = new System.Drawing.Point(680, 48);
+			this.groupBox4.Location = new System.Drawing.Point(1034, 12);
 			this.groupBox4.Name = "groupBox4";
-			this.groupBox4.Size = new System.Drawing.Size(285, 467);
+			this.groupBox4.Size = new System.Drawing.Size(285, 500);
 			this.groupBox4.TabIndex = 68;
 			this.groupBox4.TabStop = false;
 			this.groupBox4.Text = "Performance";
 			// 
 			// sleepTimeoutBoost
 			// 
-			this.sleepTimeoutBoost.Location = new System.Drawing.Point(231, 435);
+			this.sleepTimeoutBoost.Location = new System.Drawing.Point(231, 474);
 			this.sleepTimeoutBoost.Maximum = new decimal(new int[] {
             300,
             0,
@@ -652,26 +605,26 @@ namespace PowerPlanManager
 			// label17
 			// 
 			this.label17.BackColor = System.Drawing.SystemColors.Control;
-			this.label17.Location = new System.Drawing.Point(6, 437);
+			this.label17.Location = new System.Drawing.Point(6, 470);
 			this.label17.Name = "label17";
-			this.label17.Size = new System.Drawing.Size(219, 20);
+			this.label17.Size = new System.Drawing.Size(200, 25);
 			this.label17.TabIndex = 66;
-			this.label17.Text = "Sleep timeout (min):";
+			this.label17.Text = "Sleep after (min):";
 			this.label17.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// label13
 			// 
 			this.label13.BackColor = System.Drawing.SystemColors.Control;
-			this.label13.Location = new System.Drawing.Point(6, 409);
+			this.label13.Location = new System.Drawing.Point(6, 445);
 			this.label13.Name = "label13";
-			this.label13.Size = new System.Drawing.Size(219, 20);
+			this.label13.Size = new System.Drawing.Size(200, 25);
 			this.label13.TabIndex = 66;
-			this.label13.Text = "Display timeout (min):";
+			this.label13.Text = "Turn off display after (min):";
 			this.label13.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// displayTimeoutBoost
 			// 
-			this.displayTimeoutBoost.Location = new System.Drawing.Point(231, 409);
+			this.displayTimeoutBoost.Location = new System.Drawing.Point(231, 451);
 			this.displayTimeoutBoost.Maximum = new decimal(new int[] {
             300,
             0,
@@ -687,25 +640,107 @@ namespace PowerPlanManager
             0});
 			this.displayTimeoutBoost.ValueChanged += new System.EventHandler(this.displayTimeoutBoost_ValueChanged);
 			// 
-			// label15
+			// label3
 			// 
-			this.label15.BackColor = System.Drawing.SystemColors.Control;
-			this.label15.Location = new System.Drawing.Point(6, 357);
-			this.label15.Name = "label15";
-			this.label15.Size = new System.Drawing.Size(219, 21);
-			this.label15.TabIndex = 63;
-			this.label15.Text = "Performance PowerPlan:";
-			this.label15.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			this.label3.Location = new System.Drawing.Point(12, 182);
+			this.label3.Name = "label3";
+			this.label3.Size = new System.Drawing.Size(150, 25);
+			this.label3.TabIndex = 69;
+			this.label3.Text = "Reason:";
+			this.label3.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// labelReason
+			// 
+			this.labelReason.Location = new System.Drawing.Point(165, 182);
+			this.labelReason.Name = "labelReason";
+			this.labelReason.Size = new System.Drawing.Size(150, 25);
+			this.labelReason.TabIndex = 70;
+			this.labelReason.Text = "Reason:";
+			this.labelReason.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label18
+			// 
+			this.label18.Location = new System.Drawing.Point(12, 207);
+			this.label18.Name = "label18";
+			this.label18.Size = new System.Drawing.Size(150, 25);
+			this.label18.TabIndex = 71;
+			this.label18.Text = "Current PowerPlan:";
+			this.label18.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// labelCurrentPowerPlan
+			// 
+			this.labelCurrentPowerPlan.Location = new System.Drawing.Point(165, 207);
+			this.labelCurrentPowerPlan.Name = "labelCurrentPowerPlan";
+			this.labelCurrentPowerPlan.Size = new System.Drawing.Size(150, 25);
+			this.labelCurrentPowerPlan.TabIndex = 72;
+			this.labelCurrentPowerPlan.Text = "unset";
+			this.labelCurrentPowerPlan.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label20
+			// 
+			this.label20.Location = new System.Drawing.Point(12, 232);
+			this.label20.Name = "label20";
+			this.label20.Size = new System.Drawing.Size(150, 25);
+			this.label20.TabIndex = 73;
+			this.label20.Text = "Current PowerMode:";
+			this.label20.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// labelCurrentPowerMode
+			// 
+			this.labelCurrentPowerMode.Location = new System.Drawing.Point(165, 232);
+			this.labelCurrentPowerMode.Name = "labelCurrentPowerMode";
+			this.labelCurrentPowerMode.Size = new System.Drawing.Size(150, 25);
+			this.labelCurrentPowerMode.TabIndex = 74;
+			this.labelCurrentPowerMode.Text = "unset";
+			this.labelCurrentPowerMode.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label22
+			// 
+			this.label22.Location = new System.Drawing.Point(12, 293);
+			this.label22.Name = "label22";
+			this.label22.Size = new System.Drawing.Size(150, 25);
+			this.label22.TabIndex = 75;
+			this.label22.Text = "Time since last input:";
+			this.label22.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
+			// 
+			// label23
+			// 
+			this.label23.Location = new System.Drawing.Point(165, 293);
+			this.label23.Name = "label23";
+			this.label23.Size = new System.Drawing.Size(150, 25);
+			this.label23.TabIndex = 76;
+			this.label23.Text = "unset";
+			this.label23.TextAlign = System.Drawing.ContentAlignment.MiddleLeft;
 			// 
 			// FormPowerPlanManager
 			// 
 			this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.None;
-			this.ClientSize = new System.Drawing.Size(978, 696);
+			this.ClientSize = new System.Drawing.Size(1335, 524);
+			this.Controls.Add(this.toggleIdleOnScreensaver);
+			this.Controls.Add(this.label8);
+			this.Controls.Add(this.buttonPowerSaver);
+			this.Controls.Add(this.label4);
+			this.Controls.Add(this.toggleIdleOnTimeout);
+			this.Controls.Add(this.label9);
+			this.Controls.Add(this.buttonBalanced);
+			this.Controls.Add(this.buttonPerformance);
+			this.Controls.Add(this.label23);
+			this.Controls.Add(this.inputTimeout);
+			this.Controls.Add(this.pollingInterval);
+			this.Controls.Add(this.label5);
+			this.Controls.Add(this.label22);
+			this.Controls.Add(this.labelCurrentPowerMode);
+			this.Controls.Add(this.label20);
+			this.Controls.Add(this.labelCurrentPowerPlan);
+			this.Controls.Add(this.label18);
+			this.Controls.Add(this.labelReason);
+			this.Controls.Add(this.label3);
+			this.Controls.Add(this.toggleAutoStart);
+			this.Controls.Add(this.label6);
 			this.Controls.Add(this.groupBox4);
 			this.Controls.Add(this.groupBox3);
 			this.Controls.Add(this.groupBox2);
 			this.Controls.Add(this.buttonPerfToBalanced);
-			this.Controls.Add(this.groupBox1);
 			this.Controls.Add(this.buttonBalancedToPerf);
 			this.Controls.Add(this.buttonApplyBalancedPowerMode);
 			this.Controls.Add(this.buttonIdleToBalanced);
@@ -728,7 +763,6 @@ namespace PowerPlanManager
 			((System.ComponentModel.ISupportInitialize)(this.sleepTimeoutIdle)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.displayTimeoutIdle)).EndInit();
 			((System.ComponentModel.ISupportInitialize)(this.pictureBoxStatus)).EndInit();
-			this.groupBox1.ResumeLayout(false);
 			this.groupBox2.ResumeLayout(false);
 			this.groupBox3.ResumeLayout(false);
 			((System.ComponentModel.ISupportInitialize)(this.sleepTimeoutBalanced)).EndInit();
@@ -774,14 +808,10 @@ namespace PowerPlanManager
 		private System.Windows.Forms.Button buttonBalanced;
 		private System.Windows.Forms.Button buttonPerformance;
 		private System.Windows.Forms.Label label11;
-		private System.Windows.Forms.Label label10;
-		private System.Windows.Forms.GroupBox groupBox1;
 		private System.Windows.Forms.Button buttonApplyBalancedPowerMode;
 		private System.Windows.Forms.GroupBox groupBox2;
 		private System.Windows.Forms.GroupBox groupBox3;
-		private System.Windows.Forms.Label label14;
 		private System.Windows.Forms.GroupBox groupBox4;
-		private System.Windows.Forms.Label label15;
 		private System.Windows.Forms.Label label12;
 		private System.Windows.Forms.NumericUpDown displayTimeoutBalanced;
 		private System.Windows.Forms.Label label13;
@@ -790,6 +820,14 @@ namespace PowerPlanManager
 		private System.Windows.Forms.Label label16;
 		private System.Windows.Forms.NumericUpDown sleepTimeoutBoost;
 		private System.Windows.Forms.Label label17;
+		private System.Windows.Forms.Label label3;
+		private System.Windows.Forms.Label labelReason;
+		private System.Windows.Forms.Label label18;
+		private System.Windows.Forms.Label labelCurrentPowerPlan;
+		private System.Windows.Forms.Label label20;
+		private System.Windows.Forms.Label labelCurrentPowerMode;
+		private System.Windows.Forms.Label label22;
+		private System.Windows.Forms.Label label23;
 	}
 }
 

@@ -161,12 +161,15 @@ namespace PowerPlanManager
 		{
 			// show current power mode
 			//labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
+			labelCurrentPowerMode.Text = pmm.GetCurrentPowerModeName();
+			labelCurrentPowerPlan.Text = ppm.GetCurrentPowerPlanName();
 
 			// show current status
 			if (!pmm.IsCurrentModeBalanced)
 			{
 				labelStatus.ForeColor = Color.DarkRed;
-				labelStatus.Text = "NOT WORKING due to PowerMode not Balanced";
+				labelStatus.Text = "OFF";
+				labelReason.Text = "PowerMode not Balanced";
 				pictureBoxStatus.Image = Resources.idle.ToBitmap();
 			}
 			else
@@ -176,19 +179,22 @@ namespace PowerPlanManager
 					case Status.idle:
 						labelStatus.ForeColor = Color.DarkOrange;
 						//labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentStatus) + " (" + im.CurrentStatusReason + ")";
-						labelStatus.Text = "Idle (" + im.CurrentStatusReason + ")";
+						labelStatus.Text = "IDLE";
+						labelReason.Text = im.CurrentStatusReason;
 						pictureBoxStatus.Image = Resources.idle.ToBitmap();
 						break;
 					case Status.balanced:
 						labelStatus.ForeColor = Color.Green;
 						//labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentStatus) + " (" + im.CurrentStatusReason + ")";
-						labelStatus.Text = "Balanced (" + im.CurrentStatusReason + ")";
+						labelStatus.Text = "BALANCED";
+						labelReason.Text = im.CurrentStatusReason;
 						pictureBoxStatus.Image = Resources.balanced.ToBitmap();
 						break;
 					case Status.boost:
 						labelStatus.ForeColor = Color.Red;
 						//labelStatus.Text = ppm.GetSelectedPowerPlanNameForStatus(im.CurrentStatus) + " (" + im.CurrentStatusReason + ")";
-						labelStatus.Text = "Boost (" + im.CurrentStatusReason + ")";
+						labelStatus.Text = "PERFORMANCE";
+						labelReason.Text = im.CurrentStatusReason;
 						pictureBoxStatus.Image = Resources.performance.ToBitmap();
 						break;
 				}

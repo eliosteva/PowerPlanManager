@@ -140,7 +140,11 @@ namespace PowerPlanManager
 		);
 		#endregion
 
-
+		internal static string GetActivePlanName()
+		{
+			var guid = GetActivePlan();
+			return GetPlanName(guid);
+		}
 
 		/// <summary>
 		/// Gets the currently active power plan

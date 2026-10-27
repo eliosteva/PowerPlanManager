@@ -285,6 +285,11 @@ namespace PowerPlanManager
 			}
 		}
 
+		internal string GetCurrentPowerPlanName()
+		{
+			return PowerPlansApiWrapper.GetActivePlanName();
+		}
+
 		internal List<string> GetAllPowerPlansNames()
 		{
 			List<string> names = new List<string>();
